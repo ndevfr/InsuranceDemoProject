@@ -68,7 +68,6 @@ public class UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByEmail(userDetails.getUsername());
-        System.out.println(user.getPassword());
         return ResponseEntity.ok(UserDTO.of(user));
     }
 

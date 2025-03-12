@@ -1,10 +1,9 @@
 package fr.ndev.insurance.controller;
 
-import fr.ndev.insurance.dto.JsonResponse;
 import fr.ndev.insurance.dto.LoginRequest;
 import fr.ndev.insurance.dto.UserDTO;
 import fr.ndev.insurance.exception.ExceptionResponse;
-import fr.ndev.insurance.service.UserService;
+import fr.ndev.insurance.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,10 +20,10 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication", description = "Endpoints for user authentication")
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService userService;
 
     @Autowired
-    AuthController(UserService userService) {
+    AuthController(AuthService userService) {
         this.userService = userService;
     }
 
@@ -61,11 +60,21 @@ public class AuthController {
         return userService.login(loginRequest);
     }
 
+    @Operation(summary = "Logout from service", description = "Logout from service and invalidate token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully logged out",
+                    content = @Content(mediaType = "application/json", schema = @Schema(example = "{\"status\":\"200 OK\",\"message\":\"Logged out successfully\"}")))
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser() {
+        return userService.logout();
+    }
+
     @Operation(summary = "Get informations", description = "Get user informations")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Return user informations", content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ExceptionResponse.class,
-                            example = "{\"id\":2,\"firstName\":\"Marc\",\"lastName\":\"Scout\",\"email\":\"marc.scout@lumen.com\",\"address\" : [ ],\"phones\" : [ ]}"))),
+                            example = "{\"firstName\":\"Marc\",\"lastName\":\"Scout\",\"email\":\"marc.scout@lumen.com\",\"address\" : [ ],\"phones\" : [ ]}"))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ExceptionResponse.class,
                             example = "{\"status\": \"401 UNAUTHORIZED\",\"message\":\"Unauthorized endpoint\"}"))),

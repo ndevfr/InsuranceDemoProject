@@ -8,6 +8,10 @@ import java.util.List;
 
 public record ExceptionResponse(HttpStatus status, List<String> errors) {
 
+    public ExceptionResponse() {
+        this(HttpStatus.BAD_REQUEST, List.of("Invalid input data"));
+    }
+
     public ExceptionResponse(HttpStatus status, List<String> errors) {
         this.status = status;
         this.errors = errors;

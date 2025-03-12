@@ -34,10 +34,12 @@ public class User implements Auditable {
     @Column(name = "locked", nullable = false)
     private boolean locked;
 
-    @OneToMany( targetEntity=Address.class, mappedBy="user", cascade=CascadeType.ALL )
-    private List<Address> address = new ArrayList<>();
+    @OneToMany(mappedBy="user", cascade=CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("isMain DESC")
+    private List<Address> addresses = new ArrayList<>();
 
-    @OneToMany( targetEntity=Phone.class, mappedBy="user", cascade=CascadeType.ALL )
+    @OneToMany(mappedBy="user", cascade=CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("isMain DESC")
     private List<Phone> phones = new ArrayList<>();
 
     @Column(name="created_at", updatable = false)
@@ -48,14 +50,14 @@ public class User implements Auditable {
 
     public User() {}
 
-    public User(String firstName, String lastName, String email, String password, Role role, boolean locked, List<Address> address, List<Phone> phones) {
+    public User(String firstName, String lastName, String email, String password, Role role, boolean locked, List<Address> addresses, List<Phone> phones) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.role = role;
-        this.locked = locked;
-        this.address = address;
+        this.role = role != null ? role : Role.CLIENT;
+        this.locked = false;
+        this.addresses = addresses;
         this.phones = phones;
     }
 
@@ -115,12 +117,12 @@ public class User implements Auditable {
         this.locked = locked;
     }
 
-    public List<Address> getAddress() {
-        return address;
+    public List<Address> getAddresses() {
+        return addresses;
     }
 
-    public void setAddress(List<Address> address) {
-        this.address = address;
+    public void setAddresses(List<Address> addresses) {
+        this.addresses = addresses;
     }
 
     public List<Phone> getPhones() {
@@ -132,19 +134,59 @@ public class User implements Auditable {
     }
 
     public void addAddress(Address address) {
-        this.address.add(address);
+        if (this.addresses.isEmpty()) {
+            address.setIsMain(true);
+        }
+        address.setUser(this);
+        this.addresses.add(address);
+    }
+
+    public void deleteAddress(int index) {
+        this.addresses.remove(index);
+    }
+
+    public void updateAddress(int index, Address address) {
+        address.setUser(this);
+        boolean isMain = this.addresses.get(index).isMain();
+        address.setIsMain(isMain);
+        this.addresses.set(index, address);
+    }
+
+    public void chooseAddressAsMain(int index) {
+        this.addresses.forEach(a -> a.setIsMain(false));
+        this.addresses.get(index).setIsMain(true);
+    }
+
+    public void clearAddresses() {
+        this.addresses.clear();
     }
 
     public void addPhone(Phone phone) {
+        if (this.phones.isEmpty()) {
+            phone.setIsMain(true);
+        }
+        phone.setUser(this);
         this.phones.add(phone);
     }
 
-    public void removeAddress(Address address) {
-        this.address.remove(address);
+    public void deletePhone(int index) {
+        this.phones.remove(index);
     }
 
-    public void removePhone(Phone phone) {
-        this.phones.remove(phone);
+    public void updatePhone(int index, Phone phone) {
+        phone.setUser(this);
+        boolean isMain = this.phones.get(index).isMain();
+        phone.setIsMain(isMain);
+        this.phones.set(index, phone);
+    }
+
+    public void choosePhoneAsMain(int index) {
+        this.phones.forEach(a -> a.setIsMain(false));
+        this.phones.get(index).setIsMain(true);
+    }
+
+    public void clearPhones() {
+        this.phones.clear();
     }
 
     @Override

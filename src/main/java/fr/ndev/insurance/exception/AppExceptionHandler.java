@@ -24,43 +24,39 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class AppExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Object> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException ex, WebRequest request) {
+    public ExceptionResponse handleHttpMessageNotReadableException(
+        HttpMessageNotReadableException ex, WebRequest request) {
+        List<String> errors = List.of(ex.getMessage());
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", HttpStatus.BAD_REQUEST.value());
-        responseBody.put("error", "Bad Request");
-        responseBody.put("message", "Invalid enum value provided");
-        responseBody.put("details", ex.getMessage());
-
-        return new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+        return new ExceptionResponse(BAD_REQUEST, errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseStatus(BAD_REQUEST)
-    public ExceptionResponse handleConstraintValidationException(
+    public ResponseEntity<ExceptionResponse> handleConstraintValidationException(
             ConstraintViolationException ex, WebRequest request) {
         List<String> errors = ex.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .toList();
-        return new ExceptionResponse(BAD_REQUEST, errors);
+        ExceptionResponse exception = new ExceptionResponse(BAD_REQUEST, errors);
+        return ResponseEntity.status(BAD_REQUEST).body(exception);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(BAD_REQUEST)
-    public ExceptionResponse handleValidationException(
+    public ResponseEntity<ExceptionResponse> handleValidationException(
             MethodArgumentNotValidException ex, WebRequest request) {
         List<String> errors = ex.getFieldErrors().stream()
                 .map(fe -> "%s %s".formatted(fe.getField(), fe.getDefaultMessage()))
                 .toList();
-        return new ExceptionResponse(BAD_REQUEST, errors);
+        ExceptionResponse exception = new ExceptionResponse(BAD_REQUEST, errors);
+        return ResponseEntity.status(ex.getStatusCode()).body(exception);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ExceptionResponse> handleResponseException(
             ResponseStatusException ex, WebRequest request) {
         String message = Objects.requireNonNullElse(ex.getReason(), ex.getMessage());
-        ExceptionResponse exception = new ExceptionResponse((HttpStatus) ex.getStatusCode(), List.of(message));
+        List <String> errors = List.of(message);
+        ExceptionResponse exception = new ExceptionResponse(BAD_REQUEST, errors);
         return ResponseEntity.status(ex.getStatusCode()).body(exception);
     }
 }

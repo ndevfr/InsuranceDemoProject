@@ -45,7 +45,7 @@ public class Phone {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean getIsMain() {
+    public boolean isMain() {
         return isMain;
     }
 

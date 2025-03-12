@@ -1,8 +1,10 @@
 package fr.ndev.insurance.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.ndev.insurance.model.Phone;
 import fr.ndev.insurance.model.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 public class PhoneDTO {
@@ -11,12 +13,13 @@ public class PhoneDTO {
     private Long id;
 
     @NotBlank
+    @Schema(type = "string", example = "0123456789")
     private String phoneNumber;
 
-    @NotBlank
+    @JsonIgnore
     private boolean isMain;
 
-    @NotBlank
+    @JsonIgnore
     private User user;
 
     public PhoneDTO() {}
@@ -40,11 +43,12 @@ public class PhoneDTO {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String street) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean getIsMain() {
+    @JsonIgnore
+    public boolean isMain() {
         return isMain;
     }
 
@@ -65,6 +69,6 @@ public class PhoneDTO {
     }
 
     public static PhoneDTO of(Phone phone) {
-        return new PhoneDTO(phone.getId(), phone.getPhoneNumber(), phone.getIsMain(), phone.getUser());
+        return new PhoneDTO(phone.getId(), phone.getPhoneNumber(), phone.isMain(), phone.getUser());
     }
 }

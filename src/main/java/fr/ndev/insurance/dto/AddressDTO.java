@@ -1,33 +1,40 @@
 package fr.ndev.insurance.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.ndev.insurance.model.Address;
 import fr.ndev.insurance.model.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 public class AddressDTO {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     private Long id;
 
     @NotBlank
+    @Schema(type = "string", example = "Rue Java, 42")
     private String street;
 
+    @Schema(type = "string", example = "Appartement 404")
     private String complement;
 
     @NotBlank
+    @Schema(type = "string", example = "72000")
     private String zipCode;
 
     @NotBlank
+    @Schema(type = "string", example = "Le Mans")
     private String city;
 
     @NotBlank
+    @Schema(type = "string", example = "FRANCE")
     private String country;
 
-    @NotBlank
+    @JsonIgnore
     private boolean isMain;
 
-    @NotBlank
+    @JsonIgnore
     private User user;
 
     public AddressDTO() {}
@@ -91,13 +98,10 @@ public class AddressDTO {
         this.country = country;
     }
 
-    public boolean getIsMain() {
-        return isMain;
-    }
+    @JsonIgnore
+    public boolean isMain() { return isMain; }
 
-    public void setIsMain(boolean isMain) {
-        this.isMain = isMain;
-    }
+    public void setIsMain(boolean isMain) { this.isMain = isMain; }
 
     public User getUser() {
         return user;
@@ -108,10 +112,10 @@ public class AddressDTO {
     }
 
     public Address toAddress() {
-        return new Address(street, complement, zipCode, city, country, false);
+        return new Address(street, complement, zipCode, city, country, isMain);
     }
 
     public static AddressDTO of(Address address) {
-        return new AddressDTO(address.getId(), address.getStreet(), address.getComplement(), address.getZipCode(), address.getCity(), address.getCountry(), address.getIsMain(), address.getUser());
+        return new AddressDTO(address.getId(), address.getStreet(), address.getComplement(), address.getZipCode(), address.getCity(), address.getCountry(), address.isMain(), address.getUser());
     }
 }

@@ -1,9 +1,12 @@
 package fr.ndev.insurance.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 public class VehicleDTO {
 
@@ -11,18 +14,22 @@ public class VehicleDTO {
     private Long id;
 
     @NotBlank
+    @Schema(type = "String", example = "Citroen")
     private String brand;
 
     @NotBlank
+    @Schema(type = "String", example = "Clio")
     private String model;
 
-    @NotBlank
+    @Positive
+    @Schema(type = "int", example = "2022")
     private int year;
 
     @NotBlank
+    @Schema(type = "String", example = "AA-123-AA")
     private String registrationNumber;
 
-    @NotBlank
+    @JsonIgnore
     private User user;
 
     public VehicleDTO() {}

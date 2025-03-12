@@ -3,7 +3,7 @@ package fr.ndev.insurance.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "address")
+@Table(name = "addresses")
 public class Address {
 
     @Id
@@ -91,13 +91,9 @@ public class Address {
         this.country = country;
     }
 
-    public boolean getIsMain() {
-        return isMain;
-    }
+    public boolean isMain() { return isMain; }
 
-    public void setIsMain(boolean mainAddress) {
-        this.isMain = mainAddress;
-    }
+    public void setIsMain(boolean isMain) { this.isMain = isMain; }
 
     public User getUser() {
         return user;

@@ -1,15 +1,16 @@
 package fr.ndev.insurance;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.ndev.insurance.dto.AddressDTO;
 import fr.ndev.insurance.dto.LoginRequest;
-import fr.ndev.insurance.dto.UserDTO;
+import fr.ndev.insurance.dto.PhoneDTO;
 import fr.ndev.insurance.enums.Role;
+import fr.ndev.insurance.model.Address;
+import fr.ndev.insurance.model.Phone;
 import fr.ndev.insurance.model.User;
+import fr.ndev.insurance.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import fr.ndev.insurance.repository.UserRepository;
+import fr.ndev.insurance.security.JwtUtil;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -39,118 +47,342 @@ public class UserControllerTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private String tokenAdmin = "";
+    private String tokenClient = "";
+    private String agentClient = "";
+
     @BeforeEach
     public void setUp() {
         // Clear the database before each test
-        userRepository.deleteAll();
+        // userRepository.deleteAll();
+
+        // Create an admin user
+        User admin = new User();
+        admin.setFirstName("Admin");
+        admin.setLastName("User");
+        admin.setEmail("test-admin@gmail.com");
+        admin.setPassword(passwordEncoder.encode("12345678"));
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+        this.tokenAdmin = getToken(admin);
+
+        // Create a client user
+        User client = new User();
+        client.setFirstName("Client");
+        client.setLastName("User");
+        client.setEmail("test-client@gmail.com");
+        client.setPassword(passwordEncoder.encode("12345678"));
+        client.setRole(Role.CLIENT);
+        userRepository.save(client);
+        this.tokenClient = getToken(client);
+
+        // Create a agent user
+        User agent = new User();
+        agent.setFirstName("Agent");
+        agent.setLastName("User");
+        agent.setEmail("test-agent@gmail.com");
+        agent.setPassword(passwordEncoder.encode("12345678"));
+        agent.setRole(Role.CLIENT);
+        userRepository.save(client);
+        this.agentClient = getToken(agent);
     }
 
     @Test
-    public void testCreateUserSuccessfully() throws Exception {
-        User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
-        user.setEmail("marc.scout@lumen.com");
-        user.setPassword(passwordEncoder.encode("12345678"));
-        user.setRole(Role.CLIENT);
+    public void testCreatePhone() throws Exception {
+        PhoneDTO phone = initPhone();
 
-        mockMvc.perform(post("/api/auth/register")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isCreated())
-                .andExpect(content().json("{\"status\":\"201 CREATED\",\"message\":\"User marc.scout@lumen.com created successfully\"}"));
-    }
+        // Check if the phone is added successfully
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/user/phone/add")
+                            .header("Authorization", "Bearer " + tokenClient)
+                            .contentType("application/json")
+                            .content(objectMapper.writeValueAsString(phone)))
+                    .andExpect(status().isOk());
+        }
 
-    @Test
-    public void testCreateUserAlreadyExists() throws Exception {
-        User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
-        user.setEmail("marc.scout@lumen.com");
-        user.setPassword(passwordEncoder.encode("12345678"));
-        user.setRole(Role.CLIENT);
-
-        mockMvc.perform(post("/api/auth/register")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isCreated())
-                .andExpect(content().json("{\"status\":\"201 CREATED\",\"message\":\"User marc.scout@lumen.com created successfully\"}"));
-
-        mockMvc.perform(post("/api/auth/register")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isConflict())
-                .andExpect(content().json("{\"status\":\"409 CONFLICT\",\"message\":\"Email marc.scout@lumen.com already exists\"}"));
-    }
-
-    @Test
-    public void testCreateUserInvalidInput() throws Exception {
-        User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
-        user.setEmail("");
-        user.setPassword(passwordEncoder.encode("12345678"));
-        user.setRole(Role.CLIENT);
-
-        mockMvc.perform(post("/api/auth/register")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"email must not be blank\"]}"));
-
-        user.setEmail("marc.scout@lumen.com");
-        user.setPassword("");
-
-        mockMvc.perform(post("/api/auth/register")
+        // Check if the phone is not added if the user is not authenticated
+        mockMvc.perform(post("/api/user/phone/add")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"password must not be blank\"]}"));
+                        .content(objectMapper.writeValueAsString(phone)))
+                .andExpect(status().isUnauthorized());
 
-        user.setFirstName("");
-        user.setPassword(passwordEncoder.encode("12345678"));
-
-        mockMvc.perform(post("/api/auth/register")
+        // Check if the phone is not added if an information is missing
+        phone.setPhoneNumber(null);
+        mockMvc.perform(post("/api/user/phone/add")
+                        .header("Authorization", "Bearer " + tokenClient)
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"firstName must not be blank\"]}"));
-
-        user.setLastName("");
-        user.setFirstName("Marc");
-
-        mockMvc.perform(post("/api/auth/register")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"lastName must not be blank\"]}"));
+                        .content(objectMapper.writeValueAsString(phone)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void testLoginAndVerifyToken() throws Exception {
-        User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
-        user.setEmail("marc.scout@lumen.com");
-        user.setPassword(passwordEncoder.encode("12345678"));
-        user.setRole(Role.CLIENT);
-        userRepository.save(user);
+    public void testUpdatePhone() throws Exception {
+        PhoneDTO phone = initPhone();
 
-        LoginRequest loginRequest = new LoginRequest("marc.scout@lumen.com", "12345678");
+        // Create phone
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/user/phone/add")
+                            .header("Authorization", "Bearer " + tokenClient)
+                            .contentType("application/json")
+                            .content(objectMapper.writeValueAsString(phone)));
+        }
 
-        String loginPayload = objectMapper.writeValueAsString(loginRequest);
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginPayload))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseBody = loginResult.getResponse().getContentAsString();
-        String token = objectMapper.readTree(responseBody).get("message").asText();
-        System.out.println(token);
-        mockMvc.perform(get("/api/auth/me")
-                .header("Authorization", "Bearer " + token))
+        // Check if the phone is updated successfully
+        mockMvc.perform(put("/api/user/phone/update/2")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isOk());
+
+        // Check if the phone is not found
+        mockMvc.perform(put("/api/user/phone/update/12")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(phone)))
+                .andExpect(status().isNotFound());
+
+        // Check if the phone is not updated if the user is not authenticated
+        mockMvc.perform(put("/api/user/phone/update/2")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(phone)))
+                .andExpect(status().isUnauthorized());
+
+        // Check if the phone is not updated if an information is missing
+        phone.setPhoneNumber(null);
+        mockMvc.perform(put("/api/user/address/update/2")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(phone)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDeleteAndMainPhone() throws Exception {
+        PhoneDTO phone = initPhone();
+
+        // Create phones
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(post("/api/user/phone/add")
+                    .header("Authorization", "Bearer " + tokenClient)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(phone)));
+        }
+
+        // Check if the phone is not deleted if it is the main phone
+        mockMvc.perform(delete("/api/user/phone/delete/1")
+                .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isConflict());
+
+        // Change the main phone with the same phone
+        mockMvc.perform(put("/api/user/phone/main/2")
+                .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the address is deleted successfully
+        mockMvc.perform(delete("/api/user/phone/delete/1")
+                .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the phone is deleted successfully
+        mockMvc.perform(delete("/api/user/phone/delete/2")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the last phone is not deleted
+        mockMvc.perform(delete("/api/user/phone/delete/1")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    public void testAddAddress() throws Exception {
+        AddressDTO address = initAddress();
+
+        // Check if the address is added successfully
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/user/address/add")
+                            .header("Authorization", "Bearer " + tokenClient)
+                            .contentType("application/json")
+                            .content(objectMapper.writeValueAsString(address)))
+                    .andExpect(status().isOk());
+        }
+
+        // Check if the address is not added if the user is not authenticated
+        mockMvc.perform(post("/api/user/address/add")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isUnauthorized());
+
+        // Check if the address is not added if an information is missing
+        address.setCity(null);
+        mockMvc.perform(post("/api/user/address/add")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testUpdateAddress() throws Exception {
+        AddressDTO address = initAddress();
+
+        // Create addresses
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/user/address/add")
+                    .header("Authorization", "Bearer " + tokenClient)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(address)));
+        }
+
+        // Check if the address is updated successfully
+        mockMvc.perform(put("/api/user/address/update/2")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isOk());
+
+        // Check if the address is not found
+        mockMvc.perform(put("/api/user/address/update/12")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isNotFound());
+
+        // Check if the address is not updated if the user is not authenticated
+        mockMvc.perform(put("/api/user/address/update/2")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isUnauthorized());
+
+        // Check if the address is not updated if an information is missing
+        address.setCity(null);
+        mockMvc.perform(put("/api/user/address/update/2")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDeleteAndMainAddress() throws Exception {
+        AddressDTO address = initAddress();
+
+        // Create addresses
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(post("/api/user/address/add")
+                    .header("Authorization", "Bearer " + tokenClient)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(address)));
+        }
+
+        // Check if the address is not deleted if it is the main address
+        mockMvc.perform(delete("/api/user/address/delete/1")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isConflict());
+
+        // Change the main address with the same address
+        mockMvc.perform(put("/api/user/address/main/2")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the address is deleted successfully
+        mockMvc.perform(delete("/api/user/address/delete/1")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the address is deleted successfully
+        mockMvc.perform(delete("/api/user/address/delete/2")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isOk());
+
+        // Check if the last address is not deleted
+        mockMvc.perform(delete("/api/user/address/delete/1")
+                        .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isConflict());
+
+
+    }
+
+    @Test
+    public void testChangeFirstName() throws Exception {
+        // Create firstname with valid text
+        mockMvc.perform(put("/api/user/firstname/update")
+                .header("Authorization", "Bearer " + tokenClient)
+                .param("firstname", "John"))
+                .andExpect(status().isOk());
+
+        // Create firstname with invalid text
+        mockMvc.perform(put("/api/user/firstname/update")
+                .header("Authorization", "Bearer " + tokenClient)
+                .param("firstname", ""))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testChangeLastName() throws Exception {
+        // Create lastname with valid text
+        mockMvc.perform(put("/api/user/lastname/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("lastname", "John"))
+                .andExpect(status().isOk());
+
+        // Create lastname with invalid text
+        mockMvc.perform(put("/api/user/lastname/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("lastname", ""))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testChangeEmail() throws Exception {
+        // Create email with invalid text
+        mockMvc.perform(put("/api/user/email/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("email", "fdfds"))
+                .andExpect(status().isBadRequest());
+
+        // Create email with valid text
+        mockMvc.perform(put("/api/user/email/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("email", "nicolas@test.fr"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testChangePassword() throws Exception {
+        // Create password with valid text
+        mockMvc.perform(put("/api/user/password/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("password", "1234"))
+                .andExpect(status().isOk());
+
+        // Create password with invalid text
+        mockMvc.perform(put("/api/user/password/update")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .param("password", ""))
+                .andExpect(status().isBadRequest());
+    }
+
+    public String getToken(User user) {
+        return jwtUtil.generateToken(user.getEmail());
+    }
+
+    public AddressDTO initAddress() {
+        AddressDTO address = new AddressDTO();
+        address.setStreet("12 Rue de la Paix");
+        address.setCity("Paris");
+        address.setZipCode("75000");
+        address.setCountry("France");
+        return address;
+    }
+
+    public PhoneDTO initPhone() {
+        PhoneDTO phone = new PhoneDTO();
+        phone.setPhoneNumber("0123456789");
+        return phone;
     }
 
 }

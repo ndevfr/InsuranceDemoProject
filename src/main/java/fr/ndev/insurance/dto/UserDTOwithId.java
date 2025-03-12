@@ -14,7 +14,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UserDTO {
+public class UserDTOwithId {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -51,9 +51,9 @@ public class UserDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<PhoneDTO> phones;
 
-    public UserDTO() {}
+    public UserDTOwithId() {}
 
-    public UserDTO(long id, String firstName, String lastName, String email, String password, Role role, boolean locked, List<AddressDTO> addresses, List<PhoneDTO> phones) {
+    public UserDTOwithId(long id, String firstName, String lastName, String email, String password, Role role, boolean locked, List<AddressDTO> addresses, List<PhoneDTO> phones) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -141,9 +141,9 @@ public class UserDTO {
         return new User(firstName, lastName, email, password, role, locked, null, null);
     }
 
-    public static UserDTO of(User user) {
+    public static UserDTOwithId of(User user) {
         List<AddressDTO> addressesDTO = user.getAddresses().stream().map(AddressDTO::of).collect(Collectors.toList());
         List<PhoneDTO> phonesDTO = user.getPhones().stream().map(PhoneDTO::of).collect(Collectors.toList());
-        return new UserDTO(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getRole(), user.getLocked(), addressesDTO, phonesDTO);
+        return new UserDTOwithId(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getRole(), user.getLocked(), addressesDTO, phonesDTO);
     }
 }

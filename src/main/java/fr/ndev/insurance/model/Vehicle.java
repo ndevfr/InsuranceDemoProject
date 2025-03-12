@@ -1,5 +1,6 @@
 package fr.ndev.insurance.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ public class Vehicle implements Auditable {
     @Column(name = "model", nullable = false)
     private String model;
 
-    @Column(name = "year", nullable = false)
+    @Column(name = "`year`", nullable = false)
     private int year;
 
     @Column(name = "registration_number", nullable = false)
@@ -90,6 +91,13 @@ public class Vehicle implements Auditable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public void updateVehicle(Vehicle vehicle) {
+        this.brand = vehicle.getBrand();
+        this.model = vehicle.getModel();
+        this.year = vehicle.getYear();
+        this.registrationNumber = vehicle.getRegistrationNumber();
     }
 
     @Override

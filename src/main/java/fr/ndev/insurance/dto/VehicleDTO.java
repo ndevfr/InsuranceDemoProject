@@ -1,7 +1,6 @@
 package fr.ndev.insurance.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 
 public class VehicleDTO {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     private Long id;
 
     @NotBlank

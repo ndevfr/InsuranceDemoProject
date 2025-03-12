@@ -11,7 +11,7 @@ import java.util.Collections;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
-    private final String prefix = "ROLE_";
+    private final String ROLE_PREFIX = "ROLE_";
 
     public CustomUserDetails(User user) {
         this.user = user;
@@ -20,7 +20,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         System.out.println(user.getRole().toString());
-        return Collections.singleton(new SimpleGrantedAuthority(prefix + user.getRole().toString()));
+        return Collections.singleton(new SimpleGrantedAuthority(ROLE_PREFIX + user.getRole()));
     }
 
     @Override

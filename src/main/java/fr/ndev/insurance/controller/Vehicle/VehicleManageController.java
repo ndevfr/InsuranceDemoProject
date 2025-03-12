@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user")
-@Tag(name = "Vehicle management (user)", description = "Endpoints for vehicles management")
-public class VehiculeController {
+@RequestMapping("/api/users")
+@Tag(name = "Vehicle management (agent/admin)", description = "Endpoints for user management")
+public class VehicleManageController {
 
     private final VehicleService vehicleService;
 
     @Autowired
-    VehiculeController(VehicleService vehicleService) {
+    VehicleManageController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
     }
 
@@ -34,9 +34,9 @@ public class VehiculeController {
                     schema = @Schema(implementation = ExceptionResponse.class,
                             example = "[{\"vehicle1\"}, {\"vehicle2\"}]"))),
     })
-    @GetMapping("/vehicles")
-    public List<VehicleDTO> getUserVechicles() {
-        return vehicleService.getUserVehicles(null);
+    @GetMapping("/{userId}/vehicles")
+    public List<VehicleDTO> getUserVechicles(@PathVariable Long userId) {
+        return vehicleService.getUserVehicles(userId);
     }
 
     @Operation(summary = "Add vehicle", description = "Add vehicle to user profile")
@@ -51,9 +51,9 @@ public class VehiculeController {
                     schema = @Schema(implementation = ExceptionResponse.class,
                             example = "{\"status\": \"400 BAD_REQUEST\",\"errors\": [\"brand must not be blank\"]}"))),
     })
-    @PostMapping("/vehicle/add")
-    public ResponseEntity<?> addVehicle(@RequestBody @Valid VehicleDTO vehicleRequest) {
-        return vehicleService.addVehicle(vehicleRequest, null);
+    @PostMapping("/{userId}/vehicle/add")
+    public ResponseEntity<?> addVehicle(@RequestBody @Valid VehicleDTO vehicleRequest, @PathVariable Long userId) {
+        return vehicleService.addVehicle(vehicleRequest, userId);
     }
 
     @Operation(summary = "Update vehicle", description = "Update vehicle in user profile")
@@ -71,9 +71,9 @@ public class VehiculeController {
                     schema = @Schema(implementation = ExceptionResponse.class,
                             example = "{\"status\": \"404 NOT_FOUND\",\"message\":\"Vehicle not found\"}"))),
     })
-    @PutMapping("/vehicle/update/{id}")
-    public ResponseEntity<?> updateVehicle(@PathVariable int id, @RequestBody @Valid VehicleDTO vehicleRequest) {
-        return vehicleService.updateVehicle(id, vehicleRequest, null);
+    @PutMapping("/{userId}/vehicle/update/{id}")
+    public ResponseEntity<?> updateVehicle(@PathVariable int id, @RequestBody @Valid VehicleDTO vehicleRequest, @PathVariable Long userId) {
+        return vehicleService.updateVehicle(id, vehicleRequest, userId);
     }
 
     @Operation(summary = "Delete vehicle", description = "Delete vehicle from user profile")
@@ -91,9 +91,9 @@ public class VehiculeController {
                     schema = @Schema(implementation = ExceptionResponse.class,
                             example = "{\"status\": \"404 NOT_FOUND\",\"message\":\"Vehicle not found\"}"))),
     })
-    @DeleteMapping("/vehicle/delete/{id}")
-    public ResponseEntity<?> deleteVehicle(@PathVariable int id) {
-        return vehicleService.deleteVehicle(id, null);
+    @DeleteMapping("/{userId}/vehicle/delete/{id}")
+    public ResponseEntity<?> deleteVehicle(@PathVariable int id, @PathVariable Long userId) {
+        return vehicleService.deleteVehicle(id, userId);
     }
 
 }

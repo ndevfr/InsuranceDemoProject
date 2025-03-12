@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class UserDTO {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     private Long id;
 
     @NotBlank

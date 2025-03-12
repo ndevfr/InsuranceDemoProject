@@ -6,6 +6,7 @@ import fr.ndev.insurance.dto.PhoneDTO;
 import fr.ndev.insurance.enums.Role;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.repository.UserRepository;
+import fr.ndev.insurance.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,18 +15,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import fr.ndev.insurance.security.JwtUtil;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class UserControllerTest {
+public class UserManageControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -77,7 +75,7 @@ public class UserControllerTest {
         agent.setLastName("User");
         agent.setEmail("test-agent@gmail.com");
         agent.setPassword(passwordEncoder.encode("12345678"));
-        agent.setRole(Role.CLIENT);
+        agent.setRole(Role.AGENT);
         userRepository.save(client);
         this.agentClient = getToken(agent);
     }
@@ -85,26 +83,27 @@ public class UserControllerTest {
     @Test
     public void testCreatePhone() throws Exception {
         PhoneDTO phone = initPhone();
+        Long id = idClient();
 
         // Check if the phone is added successfully
         for (int i = 0; i < 4; i++) {
-            mockMvc.perform(post("/api/user/phone/add")
-                            .header("Authorization", "Bearer " + tokenClient)
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(phone)))
+            mockMvc.perform(post("/api/users/" + id + "/phone/add")
+                    .header("Authorization", "Bearer " + tokenAdmin)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(phone)))
                     .andExpect(status().isOk());
         }
 
         // Check if the phone is not added if the user is not authenticated
-        mockMvc.perform(post("/api/user/phone/add")
+        mockMvc.perform(post("/api/users/" + id + "/phone/add")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the phone is not added if an information is missing
         phone.setPhoneNumber(null);
-        mockMvc.perform(post("/api/user/phone/add")
-                        .header("Authorization", "Bearer " + tokenClient)
+        mockMvc.perform(post("/api/users/" + id + "/phone/add")
+                        .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isBadRequest());
@@ -375,6 +374,10 @@ public class UserControllerTest {
         PhoneDTO phone = new PhoneDTO();
         phone.setPhoneNumber("0123456789");
         return phone;
+    }
+
+    public Long idClient() {
+        return userRepository.findByEmail("test-admin@gmail.com").getId();
     }
 
 }

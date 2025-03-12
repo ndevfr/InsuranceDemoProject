@@ -1,13 +1,10 @@
 package fr.ndev.insurance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.ndev.insurance.dto.AddressDTO;
-import fr.ndev.insurance.dto.PhoneDTO;
 import fr.ndev.insurance.dto.VehicleDTO;
 import fr.ndev.insurance.enums.Role;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.repository.UserRepository;
-import fr.ndev.insurance.repository.VehicleRepository;
 import fr.ndev.insurance.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,32 +34,17 @@ public class VehicleControllerTest {
     private UserRepository userRepository;
 
     @Autowired
-    private VehicleRepository vehicleRepository;
-
-    @Autowired
     PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtUtil jwtUtil;
 
-    private String tokenAdmin = "";
     private String tokenClient = "";
-    private String tokenAgent = "";
 
     @BeforeEach
     public void setUp() {
         // Clear the database before each test
         // userRepository.deleteAll();
-
-        // Create an admin user
-        User admin = new User();
-        admin.setFirstName("Admin");
-        admin.setLastName("User");
-        admin.setEmail("test-admin@gmail.com");
-        admin.setPassword(passwordEncoder.encode("12345678"));
-        admin.setRole(Role.ADMIN);
-        userRepository.save(admin);
-        this.tokenAdmin = getToken(admin);
 
         // Create a client user
         User client = new User();
@@ -73,16 +55,6 @@ public class VehicleControllerTest {
         client.setRole(Role.CLIENT);
         userRepository.save(client);
         this.tokenClient = getToken(client);
-
-        // Create a agent user
-        User agent = new User();
-        agent.setFirstName("Agent");
-        agent.setLastName("User");
-        agent.setEmail("test-agent@gmail.com");
-        agent.setPassword(passwordEncoder.encode("12345678"));
-        agent.setRole(Role.CLIENT);
-        userRepository.save(client);
-        this.tokenAgent = getToken(agent);
     }
 
     @Test
@@ -116,8 +88,7 @@ public class VehicleControllerTest {
 
     @Test
     public void testUpdateVehicle() throws Exception {
-        VehicleDTO vehicle = initVehicle();
-
+        VehicleDTO vehicle;
         // Create phone
         for (int i = 0; i < 4; i++) {
             vehicle = initVehicle();
@@ -160,7 +131,7 @@ public class VehicleControllerTest {
 
     @Test
     public void testDeleteVehicle() throws Exception {
-        VehicleDTO vehicle = initVehicle();
+        VehicleDTO vehicle;
 
         // Create phones
         for (int i = 0; i < 3; i++) {

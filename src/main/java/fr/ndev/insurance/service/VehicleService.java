@@ -1,23 +1,17 @@
 package fr.ndev.insurance.service;
 
 import fr.ndev.insurance.dto.*;
-import fr.ndev.insurance.enums.Role;
-import fr.ndev.insurance.model.Address;
-import fr.ndev.insurance.model.Phone;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
 import fr.ndev.insurance.repository.UserRepository;
 import fr.ndev.insurance.repository.VehicleRepository;
-import fr.ndev.insurance.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,23 +19,14 @@ import java.util.List;
 @Service
 public class VehicleService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    VehicleService(UserRepository userRepository, VehicleRepository vehicleRepository) {
+        this.userRepository = userRepository;
+        this.vehicleRepository = vehicleRepository;
+    }
 
     @Transactional
     public ResponseEntity<?> addVehicle(VehicleDTO vehicleDTO, Long userId) {
@@ -87,7 +72,11 @@ public class VehicleService {
     public List<VehicleDTO> getUserVehicles(Long userId) {
         User user = getUser(userId);
         return vehicleRepository.findByUser(user).stream()
-                .map(VehicleDTO::of)
+                .map(vehicle -> {
+                    VehicleDTO dto = VehicleDTO.of(vehicle);
+                    dto.setId(null); // Suppression de la clé-valeur id
+                    return dto;
+                })
                 .toList();
     }
 

@@ -17,10 +17,10 @@ public class User implements Auditable {
     private Long id;
 
     @Column(name = "first_name", nullable = false)
-    private String firstName;
+    private String firstname;
 
     @Column(name = "last_name", nullable = false)
-    private String lastName;
+    private String lastname;
 
     @Column(name = "email", nullable = false)
     private String email;
@@ -50,9 +50,9 @@ public class User implements Auditable {
 
     public User() {}
 
-    public User(String firstName, String lastName, String email, String password, Role role, boolean locked, List<Address> addresses, List<Phone> phones) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User(String firstname, String lastname, String email, String password, Role role, boolean locked, List<Address> addresses, List<Phone> phones) {
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.role = role != null ? role : Role.CLIENT;
@@ -69,20 +69,20 @@ public class User implements Auditable {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getFirstname() {
+        return firstname;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getLastname() {
+        return lastname;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 
     public String getEmail() {

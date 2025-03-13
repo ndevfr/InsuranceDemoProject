@@ -1,5 +1,6 @@
 package fr.ndev.insurance.model;
 
+import fr.ndev.insurance.enums.FuelType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
@@ -23,6 +24,9 @@ public class Vehicle implements Auditable {
     @Column(name = "`year`", nullable = false)
     private int year;
 
+    @Column(name="fuel_type", nullable = false)
+    private FuelType fuelType;
+
     @Column(name = "registration_number", nullable = false)
     private String registrationNumber;
 
@@ -38,10 +42,11 @@ public class Vehicle implements Auditable {
 
     public Vehicle() {}
 
-    public Vehicle(String brand, String model, int year, String registrationNumber, User user) {
+    public Vehicle(String brand, String model, int year, FuelType fuelType, String registrationNumber, User user) {
         this.brand = brand;
         this.model = model;
         this.year = year;
+        this.fuelType = fuelType;
         this.registrationNumber = registrationNumber;
     }
 
@@ -77,6 +82,14 @@ public class Vehicle implements Auditable {
         this.year = year;
     }
 
+    public FuelType getFuelType() {
+        return fuelType;
+    }
+
+    public void setFuelType(FuelType fuelType) {
+        this.fuelType = fuelType;
+    }
+
     public String getRegistrationNumber() {
         return registrationNumber;
     }
@@ -97,6 +110,7 @@ public class Vehicle implements Auditable {
         this.brand = vehicle.getBrand();
         this.model = vehicle.getModel();
         this.year = vehicle.getYear();
+        this.fuelType = vehicle.getFuelType();
         this.registrationNumber = vehicle.getRegistrationNumber();
     }
 

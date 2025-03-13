@@ -155,7 +155,7 @@ public class UserService {
     @Transactional
     public ResponseEntity<?> updateFirstname(String firstname, Long userId) {
         User user = getUser(userId);
-        user.setFirstName(firstname);
+        user.setFirstname(firstname);
         userRepository.save(user);
         return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Firstname updated successfully"));
     }
@@ -163,7 +163,7 @@ public class UserService {
     @Transactional
     public ResponseEntity<?> updateLastname(String lastname, Long userId) {
         User user = getUser(userId);
-        user.setLastName(lastname);
+        user.setLastname(lastname);
         userRepository.save(user);
         return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Lastname updated successfully"));
     }

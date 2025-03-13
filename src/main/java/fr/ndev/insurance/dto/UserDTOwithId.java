@@ -144,6 +144,6 @@ public class UserDTOwithId {
     public static UserDTOwithId of(User user) {
         List<AddressDTO> addressesDTO = user.getAddresses().stream().map(AddressDTO::of).collect(Collectors.toList());
         List<PhoneDTO> phonesDTO = user.getPhones().stream().map(PhoneDTO::of).collect(Collectors.toList());
-        return new UserDTOwithId(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getRole(), user.getLocked(), addressesDTO, phonesDTO);
+        return new UserDTOwithId(user.getId(), user.getFirstname(), user.getLastname(), user.getEmail(), user.getPassword(), user.getRole(), user.getLocked(), addressesDTO, phonesDTO);
     }
 }

@@ -47,8 +47,8 @@ public class AuthControllerTest {
     @Test
     public void testCreateUserSuccessfully() throws Exception {
         User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
+        user.setFirstname("Marc");
+        user.setLastname("Scout");
         user.setEmail("marc.scout@lumen.com");
         user.setPassword(passwordEncoder.encode("12345678"));
         user.setRole(Role.CLIENT);
@@ -63,8 +63,8 @@ public class AuthControllerTest {
     @Test
     public void testCreateUserAlreadyExists() throws Exception {
         User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
+        user.setFirstname("Marc");
+        user.setLastname("Scout");
         user.setEmail("marc.scout@lumen.com");
         user.setPassword(passwordEncoder.encode("12345678"));
         user.setRole(Role.CLIENT);
@@ -85,8 +85,8 @@ public class AuthControllerTest {
     @Test
     public void testCreateUserInvalidInput() throws Exception {
         User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
+        user.setFirstname("Marc");
+        user.setLastname("Scout");
         user.setEmail("");
         user.setPassword(passwordEncoder.encode("12345678"));
         user.setRole(Role.CLIENT);
@@ -106,7 +106,7 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"password must not be blank\"]}"));
 
-        user.setFirstName("");
+        user.setFirstname("");
         user.setPassword(passwordEncoder.encode("12345678"));
 
         mockMvc.perform(post("/api/auth/register")
@@ -115,8 +115,8 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("{\"status\":\"400 BAD_REQUEST\",\"errors\":[\"firstName must not be blank\"]}"));
 
-        user.setLastName("");
-        user.setFirstName("Marc");
+        user.setLastname("");
+        user.setFirstname("Marc");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType("application/json")
@@ -128,8 +128,8 @@ public class AuthControllerTest {
     @Test
     public void testLoginAndVerifyToken() throws Exception {
         User user = new User();
-        user.setFirstName("Marc");
-        user.setLastName("Scout");
+        user.setFirstname("Marc");
+        user.setLastname("Scout");
         user.setEmail("marc.scout@lumen.com");
         user.setPassword(passwordEncoder.encode("12345678"));
         user.setRole(Role.CLIENT);

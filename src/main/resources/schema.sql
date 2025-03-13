@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     brand VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
     "year" INTEGER NOT NULL,
+    fuel_type VARCHAR(50) NOT NULL, -- 'Gasoline', 'Diesel', 'Electric', 'Hybrid'
     registration_number VARCHAR(50) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -57,15 +58,50 @@ CREATE TABLE IF NOT EXISTS insurance_policies (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS payments (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    payment_date DATE NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL, -- 'Credit Card', 'Bank Transfer', 'Check', etc.
+    status VARCHAR(20) NOT NULL, -- 'Completed', 'Pending', 'Failed'
+    policy_id BIGINT NOT NULL,
+    FOREIGN KEY (policy_id) REFERENCES insurance_policies(id)
+);
+
 CREATE TABLE IF NOT EXISTS claims (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     claim_number VARCHAR(50) UNIQUE NOT NULL,
     accident_date DATE NOT NULL,
     description TEXT,
     amount_claimed DECIMAL(10, 2) NOT NULL,
+    responsability DECIMAL(5, 2) NOT NULL,
     status VARCHAR(20) NOT NULL, -- 'Pending', 'Approved', 'Rejected'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     policy_id BIGINT NOT NULL,
     FOREIGN KEY (policy_id) REFERENCES insurance_policies(id)
+);
+
+CREATE TABLE IF NOT EXISTS fraud_checks (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    check_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL, -- 'Not Verified', 'In Progress', 'Verified', 'Fraud Detected'
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    claim_id BIGINT NOT NULL,
+    FOREIGN KEY (claim_id) REFERENCES claims(id)
+);
+
+CREATE TABLE IF NOT EXISTS litigations (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    status VARCHAR(20) NOT NULL, -- 'Ongoing', 'Resolved', 'Dismissed'
+    outcome VARCHAR(50), -- 'Won', 'Lost', 'Settled', 'Dismissed', 'Withdrawn'
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    claim_id BIGINT NOT NULL,
+    FOREIGN KEY (claim_id) REFERENCES claims(id)
 );

@@ -7,6 +7,8 @@ import fr.ndev.insurance.enums.Role;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,44 +44,31 @@ public class UserControllerTest {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private String tokenAdmin = "";
     private String tokenClient = "";
-    private String agentClient = "";
 
     @BeforeEach
     public void setUp() {
-        // Clear the database before each test
-        // userRepository.deleteAll();
+        if(userRepository.findByEmail("test-client@gmail.com") == null) {
+            User client = new User();
+            client.setFirstname("Client");
+            client.setLastname("User");
+            client.setEmail("test-client@gmail.com");
+            client.setPassword(passwordEncoder.encode("12345678"));
+            client.setRole(Role.CLIENT);
+            userRepository.save(client);
+            this.tokenClient = getToken(client);
+        } else {
+            User client = userRepository.findByEmail("test-client@gmail.com");
+            this.tokenClient = getToken(client);
+        }
+    }
 
-        // Create an admin user
-        User admin = new User();
-        admin.setFirstName("Admin");
-        admin.setLastName("User");
-        admin.setEmail("test-admin@gmail.com");
-        admin.setPassword(passwordEncoder.encode("12345678"));
-        admin.setRole(Role.ADMIN);
-        userRepository.save(admin);
-        this.tokenAdmin = getToken(admin);
-
-        // Create a client user
-        User client = new User();
-        client.setFirstName("Client");
-        client.setLastName("User");
-        client.setEmail("test-client@gmail.com");
-        client.setPassword(passwordEncoder.encode("12345678"));
-        client.setRole(Role.CLIENT);
-        userRepository.save(client);
-        this.tokenClient = getToken(client);
-
-        // Create a agent user
-        User agent = new User();
-        agent.setFirstName("Agent");
-        agent.setLastName("User");
-        agent.setEmail("test-agent@gmail.com");
-        agent.setPassword(passwordEncoder.encode("12345678"));
-        agent.setRole(Role.CLIENT);
-        userRepository.save(client);
-        this.agentClient = getToken(agent);
+    @AfterEach
+    public void tearDown() {
+        User user = userRepository.findByEmail("test-client@gmail.com");
+        user.clearAddresses();
+        user.clearPhones();
+        userRepository.save(user);
     }
 
     @Test
@@ -89,24 +78,24 @@ public class UserControllerTest {
         // Check if the phone is added successfully
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/user/phone/add")
-                            .header("Authorization", "Bearer " + tokenClient)
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(phone)))
+                    .header("Authorization", "Bearer " + tokenClient)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(phone)))
                     .andExpect(status().isOk());
         }
 
-        // Check if the phone is not added if the user is not authenticated
+        // Check if the phone is not added if the user is not authentified
         mockMvc.perform(post("/api/user/phone/add")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(phone)))
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the phone is not added if an information is missing
         phone.setPhoneNumber(null);
         mockMvc.perform(post("/api/user/phone/add")
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(phone)))
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -117,9 +106,9 @@ public class UserControllerTest {
         // Create phone
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/user/phone/add")
-                            .header("Authorization", "Bearer " + tokenClient)
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(phone)));
+                    .header("Authorization", "Bearer " + tokenClient)
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(phone)));
         }
 
         // Check if the phone is updated successfully
@@ -136,7 +125,7 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isNotFound());
 
-        // Check if the phone is not updated if the user is not authenticated
+        // Check if the phone is not updated if the user is not authentified
         mockMvc.perform(put("/api/user/phone/update/2")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(phone)))
@@ -144,7 +133,7 @@ public class UserControllerTest {
 
         // Check if the phone is not updated if an information is missing
         phone.setPhoneNumber(null);
-        mockMvc.perform(put("/api/user/address/update/2")
+        mockMvc.perform(put("/api/user/phone/update/2")
                         .header("Authorization", "Bearer " + tokenClient)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(phone)))
@@ -163,6 +152,10 @@ public class UserControllerTest {
                     .content(objectMapper.writeValueAsString(phone)));
         }
 
+        // Check with no authentication
+        mockMvc.perform(put("/api/user/phone/delete/1"))
+                .andExpect(status().isUnauthorized());
+
         // Check if the phone is not deleted if it is the main phone
         mockMvc.perform(delete("/api/user/phone/delete/1")
                 .header("Authorization", "Bearer " + tokenClient))
@@ -180,12 +173,12 @@ public class UserControllerTest {
 
         // Check if the phone is deleted successfully
         mockMvc.perform(delete("/api/user/phone/delete/2")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isOk());
 
         // Check if the last phone is not deleted
         mockMvc.perform(delete("/api/user/phone/delete/1")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isConflict());
     }
 
@@ -270,29 +263,33 @@ public class UserControllerTest {
                     .content(objectMapper.writeValueAsString(address)));
         }
 
+        // Check with no authentication
+        mockMvc.perform(put("/api/user/phone/delete/1"))
+                .andExpect(status().isUnauthorized());
+
         // Check if the address is not deleted if it is the main address
         mockMvc.perform(delete("/api/user/address/delete/1")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isConflict());
 
         // Change the main address with the same address
         mockMvc.perform(put("/api/user/address/main/2")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isOk());
 
         // Check if the address is deleted successfully
         mockMvc.perform(delete("/api/user/address/delete/1")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isOk());
 
         // Check if the address is deleted successfully
         mockMvc.perform(delete("/api/user/address/delete/2")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isOk());
 
         // Check if the last address is not deleted
         mockMvc.perform(delete("/api/user/address/delete/1")
-                        .header("Authorization", "Bearer " + tokenClient))
+                .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isConflict());
 
 
@@ -339,7 +336,7 @@ public class UserControllerTest {
         // Create email with valid text
         mockMvc.perform(put("/api/user/email/update")
                         .header("Authorization", "Bearer " + tokenClient)
-                        .param("email", "nicolas@test.fr"))
+                        .param("email", "test-client@gmail.com"))
                 .andExpect(status().isOk());
     }
 
@@ -348,7 +345,7 @@ public class UserControllerTest {
         // Create password with valid text
         mockMvc.perform(put("/api/user/password/update")
                         .header("Authorization", "Bearer " + tokenClient)
-                        .param("password", "1234"))
+                        .param("password", "12345678"))
                 .andExpect(status().isOk());
 
         // Create password with invalid text

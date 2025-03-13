@@ -1,6 +1,7 @@
 package fr.ndev.insurance.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.ndev.insurance.enums.FuelType;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,6 +25,9 @@ public class VehicleDTO {
     @Schema(type = "int", example = "2022")
     private int year;
 
+    @Schema(type = "String", example = "ELECTRIC")
+    private FuelType fuelType;
+
     @NotBlank
     @Schema(type = "String", example = "AA-123-AA")
     private String registrationNumber;
@@ -33,11 +37,12 @@ public class VehicleDTO {
 
     public VehicleDTO() {}
 
-    public VehicleDTO(Long id, String brand, String model, int year, String registrationNumber, User user) {
+    public VehicleDTO(Long id, String brand, String model, int year, FuelType fuelType, String registrationNumber, User user) {
         this.id = id;
         this.brand = brand;
         this.model = model;
         this.year = year;
+        this.fuelType = fuelType;
         this.registrationNumber = registrationNumber;
         this.user = user;
     }
@@ -74,6 +79,14 @@ public class VehicleDTO {
         this.year = year;
     }
 
+    public FuelType getFuelType() {
+        return fuelType;
+    }
+
+    public void setFuelType(FuelType fuelType) {
+        this.fuelType = fuelType;
+    }
+
     public String getRegistrationNumber() {
         return registrationNumber;
     }
@@ -91,10 +104,10 @@ public class VehicleDTO {
     }
 
     public Vehicle toVehicle() {
-        return new Vehicle(brand, model, year, registrationNumber, user);
+        return new Vehicle(brand, model, year, fuelType, registrationNumber, user);
     }
 
     public static VehicleDTO of(Vehicle vehicle) {
-        return new VehicleDTO(vehicle.getId(), vehicle.getBrand(), vehicle.getModel(), vehicle.getYear(), vehicle.getRegistrationNumber(), vehicle.getUser());
+        return new VehicleDTO(vehicle.getId(), vehicle.getBrand(), vehicle.getModel(), vehicle.getYear(), vehicle.getFuelType(), vehicle.getRegistrationNumber(), vehicle.getUser());
     }
 }

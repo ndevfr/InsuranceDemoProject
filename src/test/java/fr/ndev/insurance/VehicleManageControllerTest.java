@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class VehicleControllerTest {
+public class VehicleManageControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,6 +49,7 @@ public class VehicleControllerTest {
     private VehicleRepository vehicleRepository;
 
     private String tokenClient = "";
+    private String tokenAdmin = "";
 
     @BeforeEach
     public void setUp() {
@@ -65,6 +66,20 @@ public class VehicleControllerTest {
             User client = userRepository.findByEmail("test-client@gmail.com");
             this.tokenClient = getToken(client);
         }
+
+        if(userRepository.findByEmail("test-admin@gmail.com") == null) {
+            User client = new User();
+            client.setFirstname("Admin");
+            client.setLastname("User");
+            client.setEmail("test-admin@gmail.com");
+            client.setPassword(passwordEncoder.encode("12345678"));
+            client.setRole(Role.ADMIN);
+            userRepository.save(client);
+            this.tokenAdmin = getToken(client);
+        } else {
+            User client = userRepository.findByEmail("test-admin@gmail.com");
+            this.tokenAdmin = getToken(client);
+        }
     }
 
     @AfterEach
@@ -77,27 +92,38 @@ public class VehicleControllerTest {
     @Test
     public void testCreateVehicle() throws Exception {
         VehicleDTO vehicle = initVehicle();
+        Long id = idClient();
 
         // Check if the vehicle is added successfully
         for (int i = 0; i < 4; i++) {
             vehicle = initVehicle();
-            mockMvc.perform(post("/api/user/vehicle/add")
-                    .header("Authorization", "Bearer " + tokenClient)
+            mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
+                    .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)))
                     .andExpect(status().isOk());
         }
 
         // Check if the vehicle is not added if the user is not authenticated
-        mockMvc.perform(post("/api/user/vehicle/add")
+        vehicle = initVehicle();
+        mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isUnauthorized());
 
+        // Check if the vehicle is not added if the user is not authorized
+        vehicle = initVehicle();
+        mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(vehicle)))
+                .andExpect(status().isForbidden());
+
         // Check if the vehicle is not added if an information is missing
+        vehicle = initVehicle();
         vehicle.setBrand("");
-        mockMvc.perform(post("/api/user/vehicle/add")
-                .header("Authorization", "Bearer " + tokenClient)
+        mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
+                .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isBadRequest());
@@ -106,41 +132,49 @@ public class VehicleControllerTest {
     @Test
     public void testUpdateVehicle() throws Exception {
         VehicleDTO vehicle;
-        // Create phone
+        Long id = idClient();
+
         for (int i = 0; i < 4; i++) {
             vehicle = initVehicle();
-            mockMvc.perform(post("/api/user/vehicle/add")
-                    .header("Authorization", "Bearer " + tokenClient)
+            mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
+                    .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)));
         }
 
         // Check if the vehicle is updated successfully
         vehicle = initVehicle();
-        mockMvc.perform(put("/api/user/vehicle/update/2")
-                .header("Authorization", "Bearer " + tokenClient)
+        mockMvc.perform(put("/api/users/" + id + "/vehicle/update/2")
+                .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isOk());
 
         // Check if the vehicle is not found
-        mockMvc.perform(put("/api/user/vehicle/update/12")
-                .header("Authorization", "Bearer " + tokenClient)
+        mockMvc.perform(put("/api/users/" + id + "/vehicle/update/12")
+                .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isNotFound());
 
         // Check if the vehicle is not updated if the user is not authenticated
-        mockMvc.perform(put("/api/user/vehicle/update/2")
+        mockMvc.perform(put("/api/users/" + id + "/vehicle/update/2")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isUnauthorized());
 
+        // Check if the vehicle is not updated if the user is not authorized
+        mockMvc.perform(put("/api/users/" + id + "/vehicle/update/2")
+                        .header("Authorization", "Bearer " + tokenClient)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(vehicle)))
+                .andExpect(status().isForbidden());
+
         // Check if the vehicle is not updated if an information is missing
         vehicle = initVehicle();
         vehicle.setBrand(null);
-        mockMvc.perform(put("/api/user/vehicle/update/2")
-                .header("Authorization", "Bearer " + tokenClient)
+        mockMvc.perform(put("/api/users/" + id + "/vehicle/update/2")
+                .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isBadRequest());
@@ -149,30 +183,39 @@ public class VehicleControllerTest {
     @Test
     public void testDeleteVehicle() throws Exception {
         VehicleDTO vehicle;
+        Long id = idClient();
 
-        // Create phones
         for (int i = 0; i < 3; i++) {
             vehicle = initVehicle();
-            mockMvc.perform(post("/api/user/vehicle/add")
-                    .header("Authorization", "Bearer " + tokenClient)
+            mockMvc.perform(post("/api/users/" + id + "/vehicle/add")
+                    .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)));
         }
 
+        // Check if the user is not authentified
+        mockMvc.perform(delete("/api/users/" + id + "/vehicle/delete/1"))
+                .andExpect(status().isUnauthorized());
+
+        // Check if the user is not authenticated
+        mockMvc.perform(delete("/api/users/" + id + "/vehicle/delete/1")
+                .header("Authorization", "Bearer " + tokenClient))
+                .andExpect(status().isForbidden());
+
 
         // Check if the vehicle is deleted successfully
-        mockMvc.perform(delete("/api/user/vehicle/delete/1")
-                .header("Authorization", "Bearer " + tokenClient))
+        mockMvc.perform(delete("/api/users/" + id + "/vehicle/delete/1")
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the vehicle is deleted successfully
-        mockMvc.perform(delete("/api/user/vehicle/delete/2")
-                .header("Authorization", "Bearer " + tokenClient))
+        mockMvc.perform(delete("/api/users/" + id + "/vehicle/delete/2")
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the last vehicle is not deleted
-        mockMvc.perform(delete("/api/user/vehicle/delete/1")
-                .header("Authorization", "Bearer " + tokenClient))
+        mockMvc.perform(delete("/api/users/" + id + "/vehicle/delete/1")
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isConflict());
     }
 
@@ -184,7 +227,7 @@ public class VehicleControllerTest {
         VehicleDTO vehicle = new VehicleDTO();
         vehicle.setBrand("Peugeot");
         vehicle.setModel("208");
-        vehicle.setFuelType(FuelType.HYBRIDE);
+        vehicle.setFuelType(FuelType.ESSENCE);
         vehicle.setRegistrationNumber(randomRegistrationNumber());
         vehicle.setYear(2022);
         return vehicle;
@@ -204,6 +247,10 @@ public class VehicleControllerTest {
             registrationNumber += (char) (Math.random() * 26 + 'A');
         }
         return registrationNumber;
+    }
+
+    public Long idClient() {
+        return userRepository.findByEmail("test-client@gmail.com").getId();
     }
 
 }

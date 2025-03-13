@@ -36,7 +36,7 @@ public class UserService {
         Phone phone = phoneDTO.toPhone();
         user.addPhone(phone);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Phone number added successfully"));
+        return ResponseEntity.ok(PhoneDTO.of(phone));
     }
 
     @Transactional
@@ -66,7 +66,7 @@ public class UserService {
         }
         user.updatePhone(index, phone);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Phone number updated successfully"));
+        return ResponseEntity.ok(PhoneDTO.of(phone));
     }
 
     @Transactional
@@ -79,8 +79,16 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new JsonResponse(HttpStatus.CONFLICT, "Phone number is already the main phone number"));
         }
         user.choosePhoneAsMain(index);
+        Phone phone = user.getPhones().get(index);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Phone number chosen as main successfully"));
+        return ResponseEntity.ok(PhoneDTO.of(phone));
+    }
+
+    public ResponseEntity<?> getAllPhones(Long userId) {
+        User user = getUser(userId);
+        return ResponseEntity.ok(user.getAddresses().stream()
+                .map(AddressDTO::of)
+                .toList());
     }
 
     @Transactional
@@ -89,7 +97,7 @@ public class UserService {
         Address address = addressDTO.toAddress();
         user.addAddress(address);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Address added successfully"));
+        return ResponseEntity.ok(AddressDTO.of(address));
     }
 
     @Transactional
@@ -119,7 +127,7 @@ public class UserService {
         }
         user.updateAddress(index, address);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Address updated successfully"));
+        return ResponseEntity.ok(AddressDTO.of(address));
     }
 
     @Transactional
@@ -133,7 +141,16 @@ public class UserService {
         }
         user.chooseAddressAsMain(index);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Address chosen as main successfully"));
+        Address address = user.getAddresses().get(index);
+        return ResponseEntity.ok(AddressDTO.of(address));
+
+    }
+
+    public ResponseEntity<?> getAllAddresses(Long userId) {
+        User user = getUser(userId);
+        return ResponseEntity.ok(user.getAddresses().stream()
+                .map(AddressDTO::of)
+                .toList());
     }
 
     @Transactional
@@ -141,7 +158,7 @@ public class UserService {
         User user = getUser(userId);
         user.setEmail(email);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Email updated successfully"));
+        return ResponseEntity.ok(UserDTO.of(user));
     }
 
     @Transactional
@@ -149,7 +166,7 @@ public class UserService {
         User user = getUser(userId);
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Password updated successfully"));
+        return ResponseEntity.ok(UserDTO.of(user));
     }
 
     @Transactional
@@ -157,7 +174,7 @@ public class UserService {
         User user = getUser(userId);
         user.setFirstname(firstname);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Firstname updated successfully"));
+        return ResponseEntity.ok(UserDTO.of(user));
     }
 
     @Transactional
@@ -165,7 +182,40 @@ public class UserService {
         User user = getUser(userId);
         user.setLastname(lastname);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Lastname updated successfully"));
+        return ResponseEntity.ok(UserDTO.of(user));
+    }
+
+    @Transactional
+    public ResponseEntity<?> updateProfile(ProfileRequest profileRequest, Long userId) {
+        User user = getUser(userId);
+        boolean isModified = false;
+        if(profileRequest.getEmail() != null && !profileRequest.getEmail().isEmpty()) {
+            user.setEmail(profileRequest.getEmail());
+            isModified = true;
+        }
+        if(profileRequest.getPassword() != null && !profileRequest.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(profileRequest.getPassword()));
+            isModified = true;
+        }
+        if(profileRequest.getFirstname() != null && !profileRequest.getFirstname().isEmpty()) {
+            user.setFirstname(profileRequest.getFirstname());
+            isModified = true;
+        }
+        if(profileRequest.getLastname() != null && !profileRequest.getLastname().isEmpty()) {
+            user.setLastname(profileRequest.getLastname());
+            isModified = true;
+        }
+        if(isModified) {
+            userRepository.save(user);
+            return ResponseEntity.ok(UserDTO.of(user));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new JsonResponse(HttpStatus.BAD_REQUEST, "Blank informations"));
+        }
+    }
+
+    public ResponseEntity<?> getProfile(Long userId) {
+        User user = getUser(userId);
+        return ResponseEntity.ok(UserDTO.of(user));
     }
 
     @Transactional
@@ -176,7 +226,7 @@ public class UserService {
         }
         user.setRole(role);
         userRepository.save(user);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Role updated successfully"));
+        return ResponseEntity.ok(UserDTO.of(user));
     }
 
     public List<UserDTOwithId> getAllUsers() {

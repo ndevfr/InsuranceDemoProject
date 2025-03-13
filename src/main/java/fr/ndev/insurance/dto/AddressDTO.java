@@ -31,7 +31,7 @@ public class AddressDTO {
     @Schema(type = "string", example = "FRANCE")
     private String country;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean isMain;
 
     @JsonIgnore

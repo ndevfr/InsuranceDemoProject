@@ -44,13 +44,10 @@ public class SecurityConfig {
                 .headers(headers -> headers
                 .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) // for Postman, the H2 console
                 .authorizeHttpRequests(authorize -> authorize // manage access
-                .requestMatchers("/api/users/*/role/update").hasRole("ADMIN")
-                .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "AGENT")
-                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "AGENT", "CLIENT")
-                .requestMatchers(HttpMethod.GET, "/api/auth/me").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.PUT,"/api/agent/users/*/role/update").hasRole("ADMIN")
+                .requestMatchers("/api/agent/**").hasAnyRole("ADMIN", "AGENT")
+                .requestMatchers("/api/**").hasAnyRole("ADMIN", "AGENT", "CLIENT")
                 .requestMatchers("/api-docs/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()

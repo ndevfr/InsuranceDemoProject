@@ -12,4 +12,6 @@ public interface VehicleRepository extends ListCrudRepository<Vehicle, Long> {
     int countByUser(User user);
 
     List<Vehicle> findByUser(User user);
+
+    Vehicle findByRegistrationNumber(String registrationNumber);
 }

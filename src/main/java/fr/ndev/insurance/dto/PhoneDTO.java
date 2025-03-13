@@ -9,14 +9,14 @@ import jakarta.validation.constraints.NotBlank;
 
 public class PhoneDTO {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     private Long id;
 
     @NotBlank
     @Schema(type = "string", example = "0123456789")
     private String phoneNumber;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean isMain;
 
     @JsonIgnore

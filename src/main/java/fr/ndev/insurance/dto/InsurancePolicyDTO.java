@@ -1,43 +1,61 @@
 package fr.ndev.insurance.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.ndev.insurance.enums.CoverageType;
 import fr.ndev.insurance.model.InsurancePolicy;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.MapKey;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class InsurancePolicyDTO {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     private Long id;
 
-    @NotBlank
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(type="string", example="2025030001")
     private String policyNumber;
 
-    @NotBlank
-    private String coverageType;
+    @Enumerated(EnumType.STRING)
+    @Schema(type="string", example="LIABILITY")
+    private CoverageType coverageType;
 
-    @NotBlank
-    private Date startDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
 
-    @NotBlank
-    private Date endDate;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
 
-    @NotBlank
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(type="double", example="1000.00")
     private BigDecimal annualPremium;
 
-    @NotBlank
-    private Vehicle vehicle;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(type="double", example="1.0")
+    private BigDecimal bonusMalus;
 
     @NotBlank
+    @Schema(type="string", example="AA-123-AA")
+    private String vehicle;
+
+    @JsonIgnore
     private User user;
 
     public InsurancePolicyDTO() {}
 
-    public InsurancePolicyDTO(Long id, String policyNumber, String coverageType, Date startDate, Date endDate, BigDecimal annualPremium, Vehicle vehicle, User user) {
+    public InsurancePolicyDTO(Long id, String policyNumber, CoverageType coverageType, LocalDate startDate, LocalDate endDate, BigDecimal annualPremium, BigDecimal bonusMalus, String vehicle, User user) {
         this.id = id;
         this.policyNumber = policyNumber;
         this.coverageType = coverageType;
@@ -64,27 +82,27 @@ public class InsurancePolicyDTO {
         this.policyNumber = policyNumber;
     }
 
-    public String getCoverageType() {
+    public CoverageType getCoverageType() {
         return coverageType;
     }
 
-    public void setCoverageType(String coverageType) {
+    public void setCoverageType(CoverageType coverageType) {
         this.coverageType = coverageType;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
@@ -96,11 +114,19 @@ public class InsurancePolicyDTO {
         this.annualPremium = annualPremium;
     }
 
-    public Vehicle getVehicle() {
+    public BigDecimal getBonusMalus() {
+        return bonusMalus;
+    }
+
+    public void setBonusMalus(BigDecimal bonusMalus) {
+        this.bonusMalus = bonusMalus;
+    }
+
+    public String getVehicle() {
         return vehicle;
     }
 
-    public void setVehicle(Vehicle vehicle) {
+    public void setVehicle(String vehicle) {
         this.vehicle = vehicle;
     }
 
@@ -113,10 +139,12 @@ public class InsurancePolicyDTO {
     }
 
     public InsurancePolicy toInsurancePolicy() {
-        return new InsurancePolicy(policyNumber, coverageType, startDate, endDate, annualPremium, vehicle, user);
+        Vehicle vehicle = new Vehicle();
+        vehicle.setRegistrationNumber(this.vehicle);
+        return new InsurancePolicy(policyNumber, coverageType, startDate, endDate, annualPremium, bonusMalus, vehicle, user);
     }
 
     public static InsurancePolicyDTO of(InsurancePolicy insurancePolicy) {
-        return new InsurancePolicyDTO(insurancePolicy.getId(), insurancePolicy.getPolicyNumber(), insurancePolicy.getCoverageType(), insurancePolicy.getStartDate(), insurancePolicy.getEndDate(), insurancePolicy.getAnnualPremium(), insurancePolicy.getVehicle(), insurancePolicy.getUser());
+        return new InsurancePolicyDTO(insurancePolicy.getId(), insurancePolicy.getPolicyNumber(), insurancePolicy.getCoverageType(), insurancePolicy.getStartDate(), insurancePolicy.getEndDate(), insurancePolicy.getAnnualPremium(), insurancePolicy.getBonusMalus(), insurancePolicy.getVehicle().getRegistrationNumber(), insurancePolicy.getUser());
     }
 }

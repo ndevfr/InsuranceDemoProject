@@ -1,8 +1,10 @@
 package fr.ndev.insurance.model;
 
+import fr.ndev.insurance.enums.ClaimStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -19,7 +21,7 @@ public class Claim implements Auditable {
     private String claimNumber;
 
     @Column(name = "accident_date")
-    private Date accidentDate;
+    private LocalDate accidentDate;
 
     @Column(name = "description")
     private String description;
@@ -27,8 +29,11 @@ public class Claim implements Auditable {
     @Column(name = "amount_claimed")
     private BigDecimal amountClaimed;
 
+    @Column(name="responsability")
+    private Double responsability;
+
     @Column(name = "status")
-    private String status;
+    private ClaimStatus status;
 
     @Column(name="created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -42,11 +47,12 @@ public class Claim implements Auditable {
 
     public Claim() {}
 
-    public Claim(String claimNumber, Date accidentDate, String description, BigDecimal amountClaimed, String status, InsurancePolicy policy) {
+    public Claim(String claimNumber, LocalDate accidentDate, String description, BigDecimal amountClaimed, Double responsability, ClaimStatus status, InsurancePolicy policy) {
         this.claimNumber = claimNumber;
         this.accidentDate = accidentDate;
         this.description = description;
         this.amountClaimed = amountClaimed;
+        this.responsability = responsability;
         this.status = status;
         this.policy = policy;
     }
@@ -67,11 +73,11 @@ public class Claim implements Auditable {
         this.claimNumber = claimNumber;
     }
 
-    public Date getAccidentDate() {
+    public LocalDate getAccidentDate() {
         return accidentDate;
     }
 
-    public void setAccidentDate(Date accidentDate) {
+    public void setAccidentDate(LocalDate accidentDate) {
         this.accidentDate = accidentDate;
     }
 
@@ -91,11 +97,19 @@ public class Claim implements Auditable {
         this.amountClaimed = amountClaimed;
     }
 
-    public String getStatus() {
+    public Double getResponsability() {
+        return responsability;
+    }
+
+    public void setResponsability(Double responsability) {
+        this.responsability = responsability;
+    }
+
+    public ClaimStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ClaimStatus status) {
         this.status = status;
     }
 

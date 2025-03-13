@@ -34,7 +34,7 @@ public class VehicleService {
         Vehicle vehicle = vehicleDTO.toVehicle();
         vehicle.setUser(user);
         vehicleRepository.save(vehicle);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Vehicle added successfully"));
+        return ResponseEntity.ok(VehicleDTO.of(vehicle));
     }
 
     @Transactional
@@ -66,7 +66,7 @@ public class VehicleService {
         Vehicle updatedVehicle = vehicles.get(index);
         updatedVehicle.updateVehicle(vehicle);
         vehicleRepository.save(updatedVehicle);
-        return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Vehicle updated successfully"));
+        return ResponseEntity.ok(VehicleDTO.of(updatedVehicle));
     }
 
     public List<VehicleDTO> getUserVehicles(Long userId) {

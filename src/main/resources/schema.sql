@@ -48,8 +48,9 @@ CREATE TABLE IF NOT EXISTS insurance_policies (
     policy_number VARCHAR(50) UNIQUE NOT NULL,
     coverage_type VARCHAR(50) NOT NULL, -- e.g., 'Liability', 'Comprehensive'
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    end_date DATE DEFAULT NULL,
     annual_premium DECIMAL(10, 2) NOT NULL,
+    bonus_malus DECIMAL(5, 2) DEFAULT 1.00,
     vehicle_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -96,7 +97,7 @@ CREATE TABLE IF NOT EXISTS fraud_checks (
 CREATE TABLE IF NOT EXISTS litigations (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     start_date DATE NOT NULL,
-    end_date DATE,
+    end_date DATE DEFAULT NULL,
     status VARCHAR(20) NOT NULL, -- 'Ongoing', 'Resolved', 'Dismissed'
     outcome VARCHAR(50), -- 'Won', 'Lost', 'Settled', 'Dismissed', 'Withdrawn'
     details TEXT,

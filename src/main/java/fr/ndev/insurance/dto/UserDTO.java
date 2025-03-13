@@ -38,7 +38,7 @@ public class UserDTO {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Role role;
 
     @NotNull

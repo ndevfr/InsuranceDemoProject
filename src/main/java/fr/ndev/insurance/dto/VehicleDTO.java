@@ -5,6 +5,8 @@ import fr.ndev.insurance.enums.FuelType;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
@@ -25,6 +27,7 @@ public class VehicleDTO {
     @Schema(type = "int", example = "2022")
     private int year;
 
+    @Enumerated(EnumType.STRING)
     @Schema(type = "String", example = "ELECTRIC")
     private FuelType fuelType;
 

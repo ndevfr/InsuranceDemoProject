@@ -1,12 +1,17 @@
 package fr.ndev.insurance.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.ndev.insurance.enums.ClaimStatus;
 import fr.ndev.insurance.model.Claim;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class ClaimDTO {
@@ -15,10 +20,11 @@ public class ClaimDTO {
     private Long id;
 
     @NotBlank
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String claimNumber;
 
     @NotBlank
-    private Date accidentDate;
+    private LocalDate accidentDate;
 
     @NotBlank
     private String description;
@@ -29,20 +35,25 @@ public class ClaimDTO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @NotBlank
-    private String status;
+    private Double responsability;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Enumerated(EnumType.STRING)
+    private ClaimStatus status;
+
+    @JsonIgnore
     @NotBlank
     private InsurancePolicyDTO policy;
 
     public ClaimDTO() {}
 
-    public ClaimDTO(Long id, String claimNumber, Date accidentDate, String description, BigDecimal amountClaimed, String status, InsurancePolicyDTO policy) {
+    public ClaimDTO(Long id, String claimNumber, LocalDate accidentDate, String description, BigDecimal amountClaimed, Double responsability, ClaimStatus status, InsurancePolicyDTO policy) {
         this.id = id;
         this.claimNumber = claimNumber;
         this.accidentDate = accidentDate;
         this.description = description;
         this.amountClaimed = amountClaimed;
+        this.responsability = responsability;
         this.status = status;
         this.policy = policy;
     }
@@ -63,11 +74,11 @@ public class ClaimDTO {
         this.claimNumber = claimNumber;
     }
 
-    public Date getAccidentDate() {
+    public LocalDate getAccidentDate() {
         return accidentDate;
     }
 
-    public void setAccidentDate(Date accidentDate) {
+    public void setAccidentDate(LocalDate accidentDate) {
         this.accidentDate = accidentDate;
     }
 
@@ -87,11 +98,19 @@ public class ClaimDTO {
         this.amountClaimed = amountClaimed;
     }
 
-    public String getStatus() {
+    public Double getResponsability() {
+        return responsability;
+    }
+
+    public void setResponsability(Double responsability) {
+        this.responsability = responsability;
+    }
+
+    public ClaimStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ClaimStatus status) {
         this.status = status;
     }
 
@@ -104,10 +123,10 @@ public class ClaimDTO {
     }
 
     public Claim toClaim() {
-        return new Claim(claimNumber, accidentDate, description, amountClaimed, status, policy.toInsurancePolicy());
+        return new Claim(claimNumber, accidentDate, description, amountClaimed, responsability, status, policy.toInsurancePolicy());
     }
 
     public static ClaimDTO of(Claim claim) {
-        return new ClaimDTO(claim.getId(), claim.getClaimNumber(), claim.getAccidentDate(), claim.getDescription(), claim.getAmountClaimed(), claim.getStatus(), InsurancePolicyDTO.of(claim.getPolicy()));
+        return new ClaimDTO(claim.getId(), claim.getClaimNumber(), claim.getAccidentDate(), claim.getDescription(), claim.getAmountClaimed(), claim.getResponsability(), claim.getStatus(), InsurancePolicyDTO.of(claim.getPolicy()));
     }
 }

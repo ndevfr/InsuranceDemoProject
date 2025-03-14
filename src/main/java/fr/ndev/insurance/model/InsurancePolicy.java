@@ -41,7 +41,10 @@ public class InsurancePolicy implements Auditable {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne
+    @Column(name = "vehicle_last", nullable = false)
+    private String vehicleLast;
+
+    @OneToOne
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
@@ -59,6 +62,9 @@ public class InsurancePolicy implements Auditable {
         this.annualPremium = annualPremium;
         this.bonusMalus = new BigDecimal(1);
         this.vehicle = vehicle;
+        if(vehicle != null){
+            this.vehicleLast = vehicle.getRegistrationNumber();
+        }
         this.user = user;
     }
 
@@ -124,6 +130,21 @@ public class InsurancePolicy implements Auditable {
 
     public void setVehicle(Vehicle vehicle) {
         this.vehicle = vehicle;
+        if(vehicle != null){
+            this.vehicleLast = vehicle.getRegistrationNumber();
+        }
+    }
+
+    public void clearVehicle() {
+        this.vehicle = null;
+    }
+
+    public String getVehicleLast() {
+        return vehicleLast;
+    }
+
+    public void setVehicleLast(String vehicleLast) {
+        this.vehicleLast = vehicleLast;
     }
 
     public User getUser() {

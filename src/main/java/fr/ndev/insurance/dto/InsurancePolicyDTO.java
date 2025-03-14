@@ -46,6 +46,10 @@ public class InsurancePolicyDTO {
     @Schema(type="double", example="1.0")
     private BigDecimal bonusMalus;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(type="string", example="AA-123-AA")
+    private String vehicleLast;
+
     @NotBlank
     @Schema(type="string", example="AA-123-AA")
     private String vehicle;
@@ -55,13 +59,15 @@ public class InsurancePolicyDTO {
 
     public InsurancePolicyDTO() {}
 
-    public InsurancePolicyDTO(Long id, String policyNumber, CoverageType coverageType, LocalDate startDate, LocalDate endDate, BigDecimal annualPremium, BigDecimal bonusMalus, String vehicle, User user) {
+    public InsurancePolicyDTO(Long id, String policyNumber, CoverageType coverageType, LocalDate startDate, LocalDate endDate, BigDecimal annualPremium, BigDecimal bonusMalus, String vehicleLast, String vehicle, User user) {
         this.id = id;
         this.policyNumber = policyNumber;
         this.coverageType = coverageType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.annualPremium = annualPremium;
+        this.bonusMalus = bonusMalus;
+        this.vehicleLast = vehicleLast;
         this.vehicle = vehicle;
         this.user = user;
     }
@@ -130,6 +136,14 @@ public class InsurancePolicyDTO {
         this.vehicle = vehicle;
     }
 
+    public String getVehicleLast() {
+        return vehicleLast;
+    }
+
+    public void setVehicleLast(String vehicleLast) {
+        this.vehicleLast = vehicleLast;
+    }
+
     public User getUser() {
         return user;
     }
@@ -145,6 +159,11 @@ public class InsurancePolicyDTO {
     }
 
     public static InsurancePolicyDTO of(InsurancePolicy insurancePolicy) {
-        return new InsurancePolicyDTO(insurancePolicy.getId(), insurancePolicy.getPolicyNumber(), insurancePolicy.getCoverageType(), insurancePolicy.getStartDate(), insurancePolicy.getEndDate(), insurancePolicy.getAnnualPremium(), insurancePolicy.getBonusMalus(), insurancePolicy.getVehicle().getRegistrationNumber(), insurancePolicy.getUser());
+        String registrationNumber = null;
+        if (insurancePolicy.getVehicle() != null) {
+            registrationNumber = insurancePolicy.getVehicle().getRegistrationNumber();
+        }
+
+        return new InsurancePolicyDTO(insurancePolicy.getId(), insurancePolicy.getPolicyNumber(), insurancePolicy.getCoverageType(), insurancePolicy.getStartDate(), insurancePolicy.getEndDate(), insurancePolicy.getAnnualPremium(), insurancePolicy.getBonusMalus(), insurancePolicy.getVehicleLast(), registrationNumber, insurancePolicy.getUser());
     }
 }

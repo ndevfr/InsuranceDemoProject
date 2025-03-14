@@ -29,12 +29,9 @@ public class ClaimDTO {
     @NotBlank
     private String description;
 
-    @NotNull
-    @Positive
     private BigDecimal amountClaimed;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @NotBlank
     private Double responsability;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

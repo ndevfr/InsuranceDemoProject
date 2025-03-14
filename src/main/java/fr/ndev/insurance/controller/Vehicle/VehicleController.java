@@ -46,6 +46,12 @@ public class VehicleController {
         return vehicleService.updateVehicle(id, vehicleRequest, null);
     }
 
+    @Operation(summary = "Get vehicle", description = "Get vehicle in user profile")
+    @GetMapping("/vehicles/{id}")
+    public ResponseEntity<?> getVehicle(@PathVariable int id) {
+        return vehicleService.getVehicle(id, null);
+    }
+
     @Operation(summary = "Delete vehicle", description = "Delete vehicle from user profile")
     @DeleteMapping("/vehicles/{id}")
     public ResponseEntity<?> deleteVehicle(@PathVariable int id) {

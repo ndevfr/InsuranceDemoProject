@@ -3,15 +3,11 @@ package fr.ndev.insurance.service;
 import fr.ndev.insurance.dto.*;
 import fr.ndev.insurance.model.User;
 import fr.ndev.insurance.model.Vehicle;
-import fr.ndev.insurance.repository.UserRepository;
 import fr.ndev.insurance.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,18 +15,20 @@ import java.util.List;
 @Service
 public class VehicleService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final InsurancePolicyService insuranceService;
     private final VehicleRepository vehicleRepository;
 
     @Autowired
-    VehicleService(UserRepository userRepository, VehicleRepository vehicleRepository) {
-        this.userRepository = userRepository;
+    VehicleService(UserService userService, InsurancePolicyService insuranceService, VehicleRepository vehicleRepository) {
+        this.userService = userService;
+        this.insuranceService = insuranceService;
         this.vehicleRepository = vehicleRepository;
     }
 
     @Transactional
     public ResponseEntity<?> addVehicle(VehicleDTO vehicleDTO, Long userId) {
-        User user = getUser(userId);
+        User user = userService.getUser(userId);
         Vehicle vehicle = vehicleDTO.toVehicle();
         vehicle.setUser(user);
         vehicleRepository.save(vehicle);
@@ -39,38 +37,33 @@ public class VehicleService {
 
     @Transactional
     public ResponseEntity<?> deleteVehicle(int index, Long userId) {
-        User user = getUser(userId);
-        index = index - 1;
-        List<Vehicle> vehicles = vehicleRepository.findByUser(user);
-        int vehicleCount = vehicles.size();
-        if(index < 0 || index >= vehicleCount ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, "Vehicle not found"));
-        } else if(vehicleCount == 1) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new JsonResponse(HttpStatus.CONFLICT, "Cannot delete the only vehicle"));
+        User user = userService.getUser(userId);
+        Vehicle vehicle = getUserVehicleById(user, index);
+        if(insuranceService.getInsuranceByVehicle(vehicle) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new JsonResponse(HttpStatus.BAD_REQUEST, "Vehicle is linked to an insurance policy"));
         }
-        Vehicle vehicle = vehicles.get(index);
         vehicleRepository.delete(vehicle);
         return ResponseEntity.ok(new JsonResponse(HttpStatus.OK, "Vehicle deleted successfully"));
     }
 
     @Transactional
     public ResponseEntity<?> updateVehicle(int index, VehicleDTO vehicleDTO, Long userId) {
-        User user = getUser(userId);
+        User user = userService.getUser(userId);
         Vehicle vehicle = vehicleDTO.toVehicle();
-        index = index - 1;
-        List<Vehicle> vehicles = vehicleRepository.findByUser(user);
-        int vehicleCount = vehicles.size();
-        if(index < 0 || index >= vehicleCount) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, "Phone number not found"));
-        }
-        Vehicle updatedVehicle = vehicles.get(index);
+        Vehicle updatedVehicle = getUserVehicleById(user, index);
         updatedVehicle.updateVehicle(vehicle);
         vehicleRepository.save(updatedVehicle);
         return ResponseEntity.ok(VehicleDTO.of(updatedVehicle));
     }
 
+    public ResponseEntity<?> getVehicle(int index, Long userId) {
+        User user = userService.getUser(userId);
+        Vehicle vehicle = getUserVehicleById(user, index);
+        return ResponseEntity.ok(VehicleDTO.of(vehicle));
+    }
+
     public List<VehicleDTO> getUserVehicles(Long userId) {
-        User user = getUser(userId);
+        User user = userService.getUser(userId);
         return vehicleRepository.findByUser(user).stream()
                 .map(vehicle -> {
                     VehicleDTO dto = VehicleDTO.of(vehicle);
@@ -80,14 +73,14 @@ public class VehicleService {
                 .toList();
     }
 
-    public User getUser(Long userId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        if(userId == null){
-            return userRepository.findByEmail(userDetails.getUsername());
-        } else {
-            return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public Vehicle getUserVehicleById(User user, int index) {
+        List<Vehicle> vehicles = vehicleRepository.findByUser(user);
+        try{
+            return vehicles.get(index - 1);
+        } catch (IndexOutOfBoundsException e) {
+            new JsonResponse(HttpStatus.NOT_FOUND, "Vehicle not found");
         }
+        return null;
     }
 
 }

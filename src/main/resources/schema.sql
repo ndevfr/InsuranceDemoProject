@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS insurance_policies (
     end_date DATE DEFAULT NULL,
     annual_premium DECIMAL(10, 2) NOT NULL,
     bonus_malus DECIMAL(5, 2) DEFAULT 1.00,
-    vehicle_id BIGINT NOT NULL,
+    vehicle_last VARCHAR(50) DEFAULT NULL,
+    vehicle_id BIGINT UNIQUE,
     user_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -75,7 +76,7 @@ CREATE TABLE IF NOT EXISTS claims (
     accident_date DATE NOT NULL,
     description TEXT,
     amount_claimed DECIMAL(10, 2) NOT NULL,
-    responsability DECIMAL(5, 2) NOT NULL,
+    responsability DECIMAL(5, 2),
     status VARCHAR(20) NOT NULL, -- 'Pending', 'Approved', 'Rejected'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

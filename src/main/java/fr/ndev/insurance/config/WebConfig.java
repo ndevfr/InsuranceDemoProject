@@ -19,7 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders(
                         HttpHeaders.AUTHORIZATION,
                         HttpHeaders.CONTENT_TYPE,
-                        HttpHeaders.ACCEPT)
+                        HttpHeaders.ACCEPT,
+                        HttpHeaders.ORIGIN)
                 .allowedMethods(
                         HttpMethod.GET.name(),
                         HttpMethod.POST.name(),

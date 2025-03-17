@@ -212,7 +212,7 @@ public class UserService {
             String newPassword = passwordRequest.getNewPassword();
             String currentPassword = passwordRequest.getCurrentPassword();
             String confirmPassword = passwordRequest.getConfirmPassword();
-            if (!confirmPassword.equals(currentPassword)) {
+            if (!confirmPassword.equals(newPassword)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new JsonResponse(HttpStatus.BAD_REQUEST, "Passwords do not match"));
             }

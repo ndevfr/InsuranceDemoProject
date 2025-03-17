@@ -2,6 +2,7 @@ package fr.ndev.insurance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.ndev.insurance.dto.AddressDTO;
+import fr.ndev.insurance.dto.PasswordRequest;
 import fr.ndev.insurance.dto.PhoneDTO;
 import fr.ndev.insurance.dto.ProfileRequest;
 import fr.ndev.insurance.enums.Role;
@@ -512,12 +513,14 @@ public class UserManageControllerTest {
 
     @Test
     public void testChangePassword() throws Exception {
-        ProfileRequest profileRequest = new ProfileRequest();
-        profileRequest.setPassword("12345678");
+        PasswordRequest profileRequest = new PasswordRequest();
+        profileRequest.setCurrentPassword("12345678");
+        profileRequest.setNewPassword("12345678");
+        profileRequest.setConfirmPassword("12345678");
         Long id = idClient();
 
         // Create password with valid text
-        mockMvc.perform(put("/api/agent/users/" + id)
+        mockMvc.perform(put("/api/agent/users/" + id + "/password")
                 .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
@@ -525,7 +528,7 @@ public class UserManageControllerTest {
                 .andExpect(status().isOk());
 
         // Check if unauthentified
-        mockMvc.perform(put("/api/agent/users/" + id)
+        mockMvc.perform(put("/api/agent/users/" + id + "/password")
                 .with(csrf())
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(profileRequest)))
@@ -533,14 +536,14 @@ public class UserManageControllerTest {
 
         //Check if unauthenticated
         // Create firstname with valid text
-        mockMvc.perform(put("/api/agent/users/" + id)
+        mockMvc.perform(put("/api/agent/users/" + id + "/password")
                 .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isForbidden());
 
-        profileRequest.setPassword("");
+        profileRequest.setNewPassword("");
 
         // Create password with invalid text
         mockMvc.perform(put("/api/agent/users/" + id)

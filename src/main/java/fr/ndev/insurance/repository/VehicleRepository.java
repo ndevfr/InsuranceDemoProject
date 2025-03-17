@@ -5,6 +5,7 @@ import fr.ndev.insurance.model.Vehicle;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends ListCrudRepository<Vehicle, Long> {
@@ -13,5 +14,5 @@ public interface VehicleRepository extends ListCrudRepository<Vehicle, Long> {
 
     List<Vehicle> findByUser(User user);
 
-    Vehicle findByRegistrationNumber(String registrationNumber);
+    Optional<Vehicle> findByRegistrationNumber(String registrationNumber);
 }

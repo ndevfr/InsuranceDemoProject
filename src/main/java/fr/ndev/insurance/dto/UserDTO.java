@@ -21,11 +21,11 @@ public class UserDTO {
 
     @NotBlank
     @Schema(type = "string", example = "Mark")
-    private String firstName;
+    private String firstname;
 
     @NotBlank
     @Schema(type = "string", example = "Scout")
-    private String lastName;
+    private String lastname;
 
     @NotBlank
     @Email
@@ -53,10 +53,10 @@ public class UserDTO {
 
     public UserDTO() {}
 
-    public UserDTO(long id, String firstName, String lastName, String email, String password, Role role, boolean locked, List<AddressDTO> addresses, List<PhoneDTO> phones) {
+    public UserDTO(long id, String firstname, String lastname, String email, String password, Role role, boolean locked, List<AddressDTO> addresses, List<PhoneDTO> phones) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -73,20 +73,20 @@ public class UserDTO {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getFirstname() {
+        return firstname;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getLastname() {
+        return lastname;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 
     public String getEmail() {
@@ -138,7 +138,7 @@ public class UserDTO {
     }
 
     public User toUser() {
-        return new User(firstName, lastName, email, password, role, locked, null, null);
+        return new User(firstname, lastname, email, password, role, locked, null, null);
     }
 
     public static UserDTO of(User user) {

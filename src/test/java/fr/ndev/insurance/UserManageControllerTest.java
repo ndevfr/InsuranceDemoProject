@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,7 +49,7 @@ public class UserManageControllerTest {
 
     @BeforeEach
     public void setUp() {
-        if(userRepository.findByEmail("test-client@gmail.com") == null) {
+        if(userRepository.findFirstByEmail("test-client@gmail.com") == null) {
             User client = new User();
             client.setFirstname("Client");
             client.setLastname("User");
@@ -58,11 +59,11 @@ public class UserManageControllerTest {
             userRepository.save(client);
             this.tokenClient = getToken(client);
         } else {
-            User client = userRepository.findByEmail("test-client@gmail.com");
+            User client = userRepository.findFirstByEmail("test-client@gmail.com");
             this.tokenClient = getToken(client);
         }
 
-        if(userRepository.findByEmail("test-admin@gmail.com") == null) {
+        if(userRepository.findFirstByEmail("test-admin@gmail.com") == null) {
             User client = new User();
             client.setFirstname("Admin");
             client.setLastname("User");
@@ -72,14 +73,14 @@ public class UserManageControllerTest {
             userRepository.save(client);
             this.tokenAdmin = getToken(client);
         } else {
-            User client = userRepository.findByEmail("test-admin@gmail.com");
+            User client = userRepository.findFirstByEmail("test-admin@gmail.com");
             this.tokenAdmin = getToken(client);
         }
     }
 
     @AfterEach
     public void tearDown() {
-        User user = userRepository.findByEmail("test-client@gmail.com");
+        User user = userRepository.findFirstByEmail("test-client@gmail.com");
         user.clearAddresses();
         user.clearPhones();
         userRepository.save(user);
@@ -93,6 +94,7 @@ public class UserManageControllerTest {
         // Check if the phone is added successfully
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(phone)))
@@ -101,12 +103,14 @@ public class UserManageControllerTest {
 
         // Check if the phone is not added if the user is not authenticated
         mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                .with(csrf())
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the phone is not added if the user is not authorized
         mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -115,6 +119,7 @@ public class UserManageControllerTest {
         // Check if the phone is not added if an information is missing
         phone.setPhoneNumber(null);
         mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -129,6 +134,7 @@ public class UserManageControllerTest {
         // Create phone
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(phone)));
@@ -136,6 +142,7 @@ public class UserManageControllerTest {
 
         // Check if the phone is updated successfully
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -143,6 +150,7 @@ public class UserManageControllerTest {
 
         // Check if the phone is not found
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/12")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -150,12 +158,14 @@ public class UserManageControllerTest {
 
         // Check if the phone is not updated if the user is not authenticated
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/2")
+                .with(csrf())
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the phone is not updated if the user is not authorized
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -164,6 +174,7 @@ public class UserManageControllerTest {
         // Check if the phone is not updated if an information is missing
         phone.setPhoneNumber(null);
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(phone)))
@@ -178,6 +189,7 @@ public class UserManageControllerTest {
         // Create phones
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/phones")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(phone)));
@@ -185,36 +197,43 @@ public class UserManageControllerTest {
 
         // Check when the user is not authenticated
         mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isForbidden());
 
         // Check when the user is not authentified
-        mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1"))
+        mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1")
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
 
 
         // Check if the phone is not deleted if it is the main phone
         mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isConflict());
 
         // Change the main phone with the same phone
         mockMvc.perform(put("/api/agent/users/" + id + "/phones/2/main")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the address is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the phone is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/phones/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the last phone is not deleted
         mockMvc.perform(delete("/api/agent/users/" + id + "/phones/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isConflict());
     }
@@ -227,6 +246,7 @@ public class UserManageControllerTest {
         // Check if the address is added successfully
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(address)))
@@ -235,6 +255,7 @@ public class UserManageControllerTest {
 
         // Check if the address is not added if the user is not authenticated
         mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(address)))
@@ -242,16 +263,18 @@ public class UserManageControllerTest {
 
         // Check if the address is not added if the user is not authentified
         mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the address is not added if an information is missing
         address.setCity(null);
         mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -263,6 +286,7 @@ public class UserManageControllerTest {
         // Create addresses
         for (int i = 0; i < 4; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(address)));
@@ -270,37 +294,42 @@ public class UserManageControllerTest {
 
         // Check if the address is updated successfully
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/2")
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
-                        .andExpect(status().isOk());
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
+                .andExpect(status().isOk());
 
         // Check if the address is not found
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/12")
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isNotFound());
 
         // Check if the address is not updated if the user is not authentified
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/2")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the address is not updated if the user is not authenticated
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/2")
-                        .contentType("application/json")
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenClient)
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isForbidden());
 
         // Check if the address is not updated if an information is missing
         address.setCity(null);
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/2")
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(address)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(address)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -312,38 +341,45 @@ public class UserManageControllerTest {
         // Create addresses
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(post("/api/agent/users/" + id + "/addresses")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(address)));
         }
 
         // Check if the user is not authentified
-        mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/1"))
+        mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/1")
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
 
         // Check if the user is not authenticated
         mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isForbidden());
 
         // Change the main address with the same address
         mockMvc.perform(put("/api/agent/users/" + id + "/addresses/2/main")
-                        .header("Authorization", "Bearer " + tokenAdmin))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the address is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/1")
-                        .header("Authorization", "Bearer " + tokenAdmin))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the address is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/2")
-                        .header("Authorization", "Bearer " + tokenAdmin))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the last address is not deleted
         mockMvc.perform(delete("/api/agent/users/" + id + "/addresses/1")
-                        .header("Authorization", "Bearer " + tokenAdmin))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isConflict());
 
 
@@ -357,23 +393,26 @@ public class UserManageControllerTest {
 
         // Create firstname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isOk());
 
         // Check if unauthentified
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isUnauthorized());
 
         //Check if unauthenticated
         // Create firstname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isForbidden());
 
 
@@ -382,9 +421,10 @@ public class UserManageControllerTest {
 
         // Create firstname with invalid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -396,32 +436,36 @@ public class UserManageControllerTest {
 
         // Create lastname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isOk());
 
         // Check if unauthentified
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isUnauthorized());
 
         //Check if unauthenticated
         // Create firstname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isForbidden());
 
         profileRequest.setLastname("");
 
         // Create lastname with invalid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -433,32 +477,36 @@ public class UserManageControllerTest {
 
         // Create email with invalid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isOk());
 
         // Check if unauthentified
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isUnauthorized());
 
         //Check if unauthenticated
         // Create firstname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isForbidden());
 
         profileRequest.setEmail("");
 
         // Create email with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -470,32 +518,36 @@ public class UserManageControllerTest {
 
         // Create password with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isOk());
 
         // Check if unauthentified
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isUnauthorized());
 
         //Check if unauthenticated
         // Create firstname with valid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isForbidden());
 
         profileRequest.setPassword("");
 
         // Create password with invalid text
         mockMvc.perform(put("/api/agent/users/" + id)
-                        .header("Authorization", "Bearer " + tokenAdmin)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenAdmin)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -519,7 +571,7 @@ public class UserManageControllerTest {
     }
 
     public Long idClient() {
-        return userRepository.findByEmail("test-client@gmail.com").getId();
+        return userRepository.findFirstByEmail("test-client@gmail.com").getId();
     }
 
 }

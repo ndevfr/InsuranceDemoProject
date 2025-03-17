@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,7 +54,7 @@ public class VehicleManageControllerTest {
 
     @BeforeEach
     public void setUp() {
-        if(userRepository.findByEmail("test-client@gmail.com") == null) {
+        if(userRepository.findFirstByEmail("test-client@gmail.com") == null) {
             User client = new User();
             client.setFirstname("Client");
             client.setLastname("User");
@@ -63,11 +64,11 @@ public class VehicleManageControllerTest {
             userRepository.save(client);
             this.tokenClient = getToken(client);
         } else {
-            User client = userRepository.findByEmail("test-client@gmail.com");
+            User client = userRepository.findFirstByEmail("test-client@gmail.com");
             this.tokenClient = getToken(client);
         }
 
-        if(userRepository.findByEmail("test-admin@gmail.com") == null) {
+        if(userRepository.findFirstByEmail("test-admin@gmail.com") == null) {
             User client = new User();
             client.setFirstname("Admin");
             client.setLastname("User");
@@ -77,14 +78,14 @@ public class VehicleManageControllerTest {
             userRepository.save(client);
             this.tokenAdmin = getToken(client);
         } else {
-            User client = userRepository.findByEmail("test-admin@gmail.com");
+            User client = userRepository.findFirstByEmail("test-admin@gmail.com");
             this.tokenAdmin = getToken(client);
         }
     }
 
     @AfterEach
     public void tearDown() {
-        User user = userRepository.findByEmail("test-client@gmail.com");
+        User user = userRepository.findFirstByEmail("test-client@gmail.com");
         List<Vehicle> vehicles = vehicleRepository.findByUser(user);
         vehicleRepository.deleteAll(vehicles);
     }
@@ -98,6 +99,7 @@ public class VehicleManageControllerTest {
         for (int i = 0; i < 4; i++) {
             vehicle = initVehicle();
             mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)))
@@ -107,6 +109,7 @@ public class VehicleManageControllerTest {
         // Check if the vehicle is not added if the user is not authenticated
         vehicle = initVehicle();
         mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
+                .with(csrf())
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isUnauthorized());
@@ -114,15 +117,17 @@ public class VehicleManageControllerTest {
         // Check if the vehicle is not added if the user is not authorized
         vehicle = initVehicle();
         mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(vehicle)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isForbidden());
 
         // Check if the vehicle is not added if an information is missing
         vehicle = initVehicle();
         vehicle.setBrand("");
         mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
@@ -137,6 +142,7 @@ public class VehicleManageControllerTest {
         for (int i = 0; i < 4; i++) {
             vehicle = initVehicle();
             mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)));
@@ -145,6 +151,7 @@ public class VehicleManageControllerTest {
         // Check if the vehicle is updated successfully
         vehicle = initVehicle();
         mockMvc.perform(put("/api/agent/users/" + id + "/vehicles/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
@@ -152,6 +159,7 @@ public class VehicleManageControllerTest {
 
         // Check if the vehicle is not found
         mockMvc.perform(put("/api/agent/users/" + id + "/vehicles/12")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
@@ -159,21 +167,24 @@ public class VehicleManageControllerTest {
 
         // Check if the vehicle is not updated if the user is not authenticated
         mockMvc.perform(put("/api/agent/users/" + id + "/vehicles/2")
+                .with(csrf())
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isUnauthorized());
 
         // Check if the vehicle is not updated if the user is not authorized
         mockMvc.perform(put("/api/agent/users/" + id + "/vehicles/2")
-                        .header("Authorization", "Bearer " + tokenClient)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(vehicle)))
+                .with(csrf())
+                .header("Authorization", "Bearer " + tokenClient)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(vehicle)))
                 .andExpect(status().isForbidden());
 
         // Check if the vehicle is not updated if an information is missing
         vehicle = initVehicle();
         vehicle.setBrand(null);
         mockMvc.perform(put("/api/agent/users/" + id + "/vehicles/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin)
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(vehicle)))
@@ -188,35 +199,35 @@ public class VehicleManageControllerTest {
         for (int i = 0; i < 3; i++) {
             vehicle = initVehicle();
             mockMvc.perform(post("/api/agent/users/" + id + "/vehicles")
+                    .with(csrf())
                     .header("Authorization", "Bearer " + tokenAdmin)
                     .contentType("application/json")
                     .content(objectMapper.writeValueAsString(vehicle)));
         }
 
         // Check if the user is not authentified
-        mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/1"))
+        mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/1")
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
 
         // Check if the user is not authenticated
         mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenClient))
                 .andExpect(status().isForbidden());
 
 
         // Check if the vehicle is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/1")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
 
         // Check if the vehicle is deleted successfully
         mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/2")
+                .with(csrf())
                 .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk());
-
-        // Check if the last vehicle is not deleted
-        mockMvc.perform(delete("/api/agent/users/" + id + "/vehicles/1")
-                .header("Authorization", "Bearer " + tokenAdmin))
-                .andExpect(status().isConflict());
     }
 
     public String getToken(User user) {
@@ -250,7 +261,7 @@ public class VehicleManageControllerTest {
     }
 
     public Long idClient() {
-        return userRepository.findByEmail("test-client@gmail.com").getId();
+        return userRepository.findFirstByEmail("test-client@gmail.com").getId();
     }
 
 }

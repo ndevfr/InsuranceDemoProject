@@ -48,66 +48,84 @@ public class ClaimService {
 
     @Transactional
     public ResponseEntity<?> addClaim(ClaimDTO claimDTO, int policyId, Long userId) {
-        User user = userService.getUser(userId);
-        InsurancePolicy insurancePolicy = insurancePolicyService.getUserInsuranceById(user, policyId);
-        int claimsCount = claimRepository.countByPolicy(insurancePolicy);
-        if(insurancePolicy == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, "Insurance policy not found"));
+        try {
+            User user = userService.getUser(userId);
+            InsurancePolicy insurancePolicy = insurancePolicyService.getUserInsuranceById(user, policyId);
+            int claimsCount = claimRepository.countByPolicy(insurancePolicy);
+            if (insurancePolicy == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, "Insurance policy not found"));
+            }
+            Claim claim = claimDTO.toClaim();
+            claim.setPolicy(insurancePolicy);
+            claim.setClaimNumber(createClaimNumber(insurancePolicy.getPolicyNumber(), claimsCount + 1));
+            if (claim.getAmountClaimed() == null) {
+                claim.setAmountClaimed(BigDecimal.ZERO);
+            }
+            claim.setStatus(ClaimStatus.PENDING);
+            claimRepository.save(claim);
+            return ResponseEntity.ok(ClaimDTO.of(claim));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, e.getMessage()));
         }
-        Claim claim = claimDTO.toClaim();
-        claim.setPolicy(insurancePolicy);
-        claim.setClaimNumber(createClaimNumber(insurancePolicy.getPolicyNumber(), claimsCount + 1));
-        if(claim.getAmountClaimed() == null) {
-            claim.setAmountClaimed(BigDecimal.ZERO);
-        }
-        claim.setStatus(ClaimStatus.PENDING);
-        claimRepository.save(claim);
-        return ResponseEntity.ok(ClaimDTO.of(claim));
     }
 
     @Transactional
-    public ResponseEntity<?> updateClaim(ClaimDTO claimDTO, int index, int policyId, Long userId) {
-        User user = userService.getUser(userId);
-        Claim claim = getUserClaimById(user, policyId, index);
-        claim.setDescription(claimDTO.getDescription());
-        claim.setAmountClaimed(claimDTO.getAmountClaimed());
-        claim.setAccidentDate(claimDTO.getAccidentDate());
-        claimRepository.save(claim);
-        return ResponseEntity.ok(ClaimDTO.of(claim));
+    public ResponseEntity<?> updateClaim(ClaimDTO claimDTO, int index, int policyId, Long userId){
+       try {
+           User user = userService.getUser(userId);
+            Claim claim = getUserClaimById(user, policyId, index);
+            claim.setDescription(claimDTO.getDescription());
+            claim.setAmountClaimed(claimDTO.getAmountClaimed());
+            claim.setAccidentDate(claimDTO.getAccidentDate());
+            claimRepository.save(claim);
+            return ResponseEntity.ok(ClaimDTO.of(claim));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, e.getMessage()));
+        }
     }
 
     @Transactional
     public ResponseEntity<?> closeClaim(int index, int policyId, Long userId) {
-        User user = userService.getUser(userId);
-        Claim closedClaim = getUserClaimById(user, policyId, index);
-        closedClaim.setStatus(ClaimStatus.CANCELLED);
-        claimRepository.save(closedClaim);
-        return ResponseEntity.ok(ClaimDTO.of(closedClaim));
+        try {
+            User user = userService.getUser(userId);
+            Claim closedClaim = getUserClaimById(user, policyId, index);
+            closedClaim.setStatus(ClaimStatus.CANCELLED);
+            claimRepository.save(closedClaim);
+            return ResponseEntity.ok(ClaimDTO.of(closedClaim));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, e.getMessage()));
+        }
     }
 
     public ResponseEntity<?> getClaim(int index, int policyId, Long userId) {
-        User user = userService.getUser(userId);
-        Claim claim = getUserClaimById(user, policyId, index);
-        return ResponseEntity.ok(ClaimDTO.of(claim));
+        try {
+            User user = userService.getUser(userId);
+            Claim claim = getUserClaimById(user, policyId, index);
+            return ResponseEntity.ok(ClaimDTO.of(claim));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new JsonResponse(HttpStatus.NOT_FOUND, e.getMessage()));
+        }
     }
 
     public List<ClaimDTO> getAllClaims(int policyId, Long userId) {
-        User user = userService.getUser(userId);
-        InsurancePolicy insurancePolicy = insurancePolicyService.getUserInsuranceById(user, policyId);
-        return claimRepository.findByPolicy(insurancePolicy).stream()
-                .map(ClaimDTO::of)
-                .toList();
+        try {
+            User user = userService.getUser(userId);
+            InsurancePolicy insurancePolicy = insurancePolicyService.getUserInsuranceById(user, policyId);
+            return claimRepository.findByPolicy(insurancePolicy).stream()
+                    .map(ClaimDTO::of)
+                    .toList();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     public Claim getUserClaimById(User user, int policyId, int index) {
         InsurancePolicy insurancePolicy = insurancePolicyService.getUserInsuranceById(user, policyId);
         List<Claim> claims = claimRepository.findByPolicy(insurancePolicy);
-        try{
-            return claims.get(index - 1);
-        } catch (IndexOutOfBoundsException e) {
-            new JsonResponse(HttpStatus.NOT_FOUND, "Claim not found");
+        if (index <= 0 || index > claims.size()) {
+            throw new IndexOutOfBoundsException("Insurance Policy not found");
         }
-        return null;
+        return claims.get(index - 1);
     }
 
     public String createClaimNumber(String policyName, long number){

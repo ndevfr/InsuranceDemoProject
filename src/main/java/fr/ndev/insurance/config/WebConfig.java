@@ -26,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
                         HttpMethod.PUT.name(),
                         HttpMethod.DELETE.name())
                 .maxAge(MAX_AGE)
-                .allowedOrigins("https://insurance-front.ndev.app", "http://localhost:3000", "http://localhost:4200")
+                .allowedOrigins("https://insurance-front.ndev.app", "http://insurance-front.ndev.app", "https://insurance-back.ndev.app", "http://insurance-back.ndev.app", "http://localhost:3000", "http://localhost:4200")
                 .allowCredentials(true);
     }
 }

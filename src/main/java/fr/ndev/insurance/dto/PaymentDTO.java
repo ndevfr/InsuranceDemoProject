@@ -6,14 +6,11 @@ import fr.ndev.insurance.enums.PaymentMethod;
 import fr.ndev.insurance.enums.PaymentStatus;
 import fr.ndev.insurance.model.InsurancePolicy;
 import fr.ndev.insurance.model.Payment;
-import fr.ndev.insurance.model.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class PaymentDTO {
 
@@ -22,7 +19,7 @@ public class PaymentDTO {
 
     @NotBlank
     @Schema(type="string", example="2025-01-01T00:00:00")
-    private LocalDateTime paiementDate;
+    private LocalDateTime paymentDate;
 
     @NotBlank
     @Schema(type="string", example = "1234.63")
@@ -42,9 +39,9 @@ public class PaymentDTO {
 
     public PaymentDTO() {}
 
-    public PaymentDTO(Long id, LocalDateTime paiementDate, BigDecimal amount, PaymentMethod paymentMethod, PaymentStatus status, InsurancePolicy insurancePolicy) {
+    public PaymentDTO(Long id, LocalDateTime paymentDate, BigDecimal amount, PaymentMethod paymentMethod, PaymentStatus status, InsurancePolicy insurancePolicy) {
         this.id = id;
-        this.paiementDate = paiementDate;
+        this.paymentDate = paymentDate;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
         this.status = status;
@@ -55,34 +52,6 @@ public class PaymentDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getPaiementDate() {
-        return paiementDate;
-    }
-
-    public void setPaiementDate(LocalDateTime paiementDate) {
-        this.paiementDate = paiementDate;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
     public PaymentStatus getStatus() {
         return status;
     }
@@ -91,16 +60,8 @@ public class PaymentDTO {
         this.status = status;
     }
 
-    public InsurancePolicy getInsurancePolicy() {
-        return insurancePolicy;
-    }
-
-    public void setInsurancePolicy(InsurancePolicy insurancePolicy) {
-        this.insurancePolicy = insurancePolicy;
-    }
-
     public Payment toPayment() {
-        return new Payment(paiementDate, amount, paymentMethod, status, insurancePolicy);
+        return new Payment(paymentDate, amount, paymentMethod, status, insurancePolicy);
     }
 
     public static PaymentDTO of(Payment payment) {

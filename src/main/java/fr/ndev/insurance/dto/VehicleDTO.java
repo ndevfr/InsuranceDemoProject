@@ -54,14 +54,6 @@ public class VehicleDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
     public void setBrand(String brand) {
         this.brand = brand;
     }
@@ -74,24 +66,12 @@ public class VehicleDTO {
         this.model = model;
     }
 
-    public int getYear() {
-        return year;
-    }
-
     public void setYear(int year) {
         this.year = year;
     }
 
-    public FuelType getFuelType() {
-        return fuelType;
-    }
-
     public void setFuelType(FuelType fuelType) {
         this.fuelType = fuelType;
-    }
-
-    public String getRegistrationNumber() {
-        return registrationNumber;
     }
 
     public void setRegistrationNumber(String registrationNumber) {

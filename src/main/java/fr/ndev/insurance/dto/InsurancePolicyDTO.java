@@ -10,13 +10,10 @@ import fr.ndev.insurance.model.Vehicle;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.MapKey;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 public class InsurancePolicyDTO {
 
@@ -76,72 +73,12 @@ public class InsurancePolicyDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPolicyNumber() {
-        return policyNumber;
-    }
-
-    public void setPolicyNumber(String policyNumber) {
-        this.policyNumber = policyNumber;
-    }
-
-    public CoverageType getCoverageType() {
-        return coverageType;
-    }
-
-    public void setCoverageType(CoverageType coverageType) {
-        this.coverageType = coverageType;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public BigDecimal getAnnualPremium() {
-        return annualPremium;
-    }
-
-    public void setAnnualPremium(BigDecimal annualPremium) {
-        this.annualPremium = annualPremium;
-    }
-
-    public BigDecimal getBonusMalus() {
-        return bonusMalus;
-    }
-
-    public void setBonusMalus(BigDecimal bonusMalus) {
-        this.bonusMalus = bonusMalus;
-    }
-
     public String getVehicle() {
         return vehicle;
     }
 
     public void setVehicle(String vehicle) {
         this.vehicle = vehicle;
-    }
-
-    public String getVehicleLast() {
-        return vehicleLast;
-    }
-
-    public void setVehicleLast(String vehicleLast) {
-        this.vehicleLast = vehicleLast;
     }
 
     public User getUser() {

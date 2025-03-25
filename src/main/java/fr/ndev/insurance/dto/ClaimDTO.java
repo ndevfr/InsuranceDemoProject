@@ -7,12 +7,9 @@ import fr.ndev.insurance.model.Claim;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 public class ClaimDTO {
 
@@ -59,24 +56,8 @@ public class ClaimDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getClaimNumber() {
-        return claimNumber;
-    }
-
-    public void setClaimNumber(String claimNumber) {
-        this.claimNumber = claimNumber;
-    }
-
     public LocalDate getAccidentDate() {
         return accidentDate;
-    }
-
-    public void setAccidentDate(LocalDate accidentDate) {
-        this.accidentDate = accidentDate;
     }
 
     public String getDescription() {
@@ -91,32 +72,12 @@ public class ClaimDTO {
         return amountClaimed;
     }
 
-    public void setAmountClaimed(BigDecimal amountClaimed) {
-        this.amountClaimed = amountClaimed;
-    }
-
-    public Double getResponsability() {
-        return responsability;
-    }
-
-    public void setResponsability(Double responsability) {
-        this.responsability = responsability;
-    }
-
     public ClaimStatus getStatus() {
         return status;
     }
 
     public void setStatus(ClaimStatus status) {
         this.status = status;
-    }
-
-    public InsurancePolicyDTO getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(InsurancePolicyDTO policy) {
-        this.policy = policy;
     }
 
     public Claim toClaim() {

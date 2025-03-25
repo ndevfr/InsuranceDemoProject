@@ -54,10 +54,6 @@ public class Litigation implements Auditable {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public LocalDate getStartDate() {
         return startDate;
     }

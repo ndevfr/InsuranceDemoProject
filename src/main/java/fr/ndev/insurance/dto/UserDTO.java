@@ -69,26 +69,6 @@ public class UserDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -111,30 +91,6 @@ public class UserDTO {
 
     public void setRole(Role role) {
         this.role = role;
-    }
-
-    public boolean getLocked() {
-        return locked;
-    }
-
-    public void setLocked(boolean locked) {
-        this.locked = locked;
-    }
-
-    public List<AddressDTO> getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(List<AddressDTO> addresses) {
-        this.addresses = addresses;
-    }
-
-    public List<PhoneDTO> getPhones() {
-        return phones;
-    }
-
-    public void setPhones(List<PhoneDTO> phones) {
-        this.phones = phones;
     }
 
     public User toUser() {

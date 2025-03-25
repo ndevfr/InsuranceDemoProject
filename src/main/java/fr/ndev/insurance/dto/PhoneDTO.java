@@ -35,25 +35,8 @@ public class PhoneDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    @JsonIgnore
-    public boolean isMain() {
-        return isMain;
-    }
-
-    public void setIsMain(boolean isMain) {
-        this.isMain = isMain;
     }
 
     public User getUser() {

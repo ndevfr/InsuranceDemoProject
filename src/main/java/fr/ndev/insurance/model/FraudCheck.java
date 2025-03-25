@@ -1,11 +1,8 @@
 package fr.ndev.insurance.model;
 
 import fr.ndev.insurance.enums.FraudStatus;
-import fr.ndev.insurance.enums.PaymentMethod;
-import fr.ndev.insurance.enums.PaymentStatus;
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -46,10 +43,6 @@ public class FraudCheck  implements Auditable {
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public LocalDate getCheckDate() {

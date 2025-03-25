@@ -41,44 +41,12 @@ public class AuthResponse {
         this.email = email;
     }
 
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
     public Role getRole() {
         return role;
     }
 
     public void setRole(Role role) {
         this.role = role;
-    }
-
-    public boolean isAuthenticated() {
-        return authenticated;
-    }
-
-    public void setAuthenticated(boolean authenticated) {
-        this.authenticated = authenticated;
-    }
-
-    public Instant getTokenExpiresAt() {
-        return tokenExpiresAt;
-    }
-
-    public void setTokenExpiresAt(Instant tokenExpiresAt) {
-        this.tokenExpiresAt = tokenExpiresAt;
     }
 
     @Override

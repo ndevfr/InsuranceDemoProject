@@ -1,7 +1,6 @@
 package fr.ndev.insurance.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import fr.ndev.insurance.enums.FraudStatus;
 import fr.ndev.insurance.enums.LitigationOutcome;
 import fr.ndev.insurance.enums.LitigationStatus;
 import fr.ndev.insurance.model.Claim;
@@ -55,56 +54,12 @@ public class LitigationDTO {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
     public LitigationStatus getStatus() {
         return status;
     }
 
     public void setStatus(LitigationStatus status) {
         this.status = status;
-    }
-
-    public LitigationOutcome getOutcome() {
-        return outcome;
-    }
-
-    public void setOutcome(LitigationOutcome outcome) {
-        this.outcome = outcome;
-    }
-
-    public String getDetails() {
-        return details;
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
-    }
-
-    public Claim getClaim() {
-        return claim;
-    }
-
-    public void setClaim(Claim claim) {
-        this.claim = claim;
     }
 
     public Litigation toLitigation() {
